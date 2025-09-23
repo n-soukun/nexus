@@ -1,7 +1,6 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-import { Game, GameOnlyEvents, TeamEvents } from "@lol-observer/core";
 import Store from "electron-store";
 import { base64 } from "base64-img";
 import type { WebSocket as WsWebSocket } from "ws";
@@ -15,8 +14,7 @@ import {
     sendMessage,
     SendMessageNames,
 } from "./websocket";
-
-let game: Game | null = null;
+import { execute, getGameStats, getGameTime } from "./gameObserver";
 
 interface StoreSchema {
     hudCustomize: HUDCustomize;
@@ -39,90 +37,15 @@ const store = new Store<StoreSchema>({
     },
 });
 
-function gameToGameStats(game: Game): GameStats {
-    return {
-        blueTeam: {
-            kills: game.teams.ORDER.kills,
-            turrets: game.teams.ORDER.killTurrets,
-            golds: game.teams.ORDER.golds,
-            killHordes: game.teams.ORDER.killHordes,
-            dragons: game.teams.ORDER.dragons,
-            killAtakhans: game.teams.ORDER.killAtakhans,
-            featsProgress: game.teams.ORDER.featsProgress,
-        },
-        redTeam: {
-            kills: game.teams.CHAOS.kills,
-            turrets: game.teams.CHAOS.killTurrets,
-            golds: game.teams.CHAOS.golds,
-            killHordes: game.teams.CHAOS.killHordes,
-            dragons: game.teams.CHAOS.dragons,
-            killAtakhans: game.teams.CHAOS.killAtakhans,
-            featsProgress: game.teams.CHAOS.featsProgress,
-        },
-    };
-}
-
-export function getCurrentGameData(): {
-    gameStats: GameStats;
-    gameTime: GameTime;
-} | null {
-    if (!game) {
-        const stats = gameToGameStats(game!);
-        const time = { seconds: game!.gameTime };
-        return { gameStats: stats, gameTime: time };
-    }
-    return null;
-}
-
 function handleReciveRequestCurrentData(ws: WsWebSocket): void {
-    if (game) {
-        const stats = gameToGameStats(game);
-        const time = { seconds: game.gameTime };
+    const stats = getGameStats();
+    const time = getGameTime();
+    if (stats) {
         sendMessage(SendMessageNames.GameStats, stats, ws);
         sendMessage(SendMessageNames.GameTime, time, ws);
     }
     const customize = store.get("hudCustomize");
     sendMessage(SendMessageNames.HUDCustomize, customize, ws);
-}
-
-async function main({
-    timeFn,
-    statsFn,
-}: {
-    timeFn: (seconds: GameTime) => void;
-    statsFn: (stats: GameStats | null) => void;
-}): Promise<void> {
-    if (game) {
-        game.on(GameOnlyEvents.Update, (game) => {
-            timeFn({
-                seconds: game.gameTime,
-            });
-        });
-        game.teams.ORDER.on(TeamEvents.Update, (team) => {
-            console.log("ORDER team updated");
-            statsFn(gameToGameStats(team.game));
-        });
-        game.teams.CHAOS.on(TeamEvents.Update, (team) => {
-            statsFn(gameToGameStats(team.game));
-        });
-        game.on(GameOnlyEvents.Disconnected, () => {
-            console.log("Game disconnected");
-            game = null;
-            statsFn(null);
-            main({ timeFn, statsFn });
-        });
-    } else {
-        while (true) {
-            const result = await Game.checkGameAvailable();
-            if (result) {
-                game = await Game.connect();
-                console.log("Game found:", game.gameMode);
-                statsFn(gameToGameStats(game));
-                main({ timeFn, statsFn });
-                break;
-            }
-        }
-    }
 }
 
 function createWindow(): void {
@@ -162,6 +85,12 @@ function createWindow(): void {
         return { action: "deny" };
     });
 
+    // WebSocketメッセージハンドラ登録
+    registerReceiveMessageHandler(
+        ReceiveMessageNames.RequestCurrentData,
+        handleReciveRequestCurrentData,
+    );
+
     const sendStatsToClients = (stats: GameStats | null): void => {
         sendMessage(SendMessageNames.GameStats, stats);
         mainWindow.webContents.send("game-state-changed", stats);
@@ -172,14 +101,10 @@ function createWindow(): void {
         mainWindow.webContents.send("game-time-changed", time);
     };
 
-    registerReceiveMessageHandler(
-        ReceiveMessageNames.RequestCurrentData,
-        handleReciveRequestCurrentData,
-    );
-
-    main({
-        timeFn: sendGameTimeToClients,
-        statsFn: sendStatsToClients,
+    // ゲーム監視の開始
+    execute({
+        onTimeChange: sendGameTimeToClients,
+        onStatsChange: sendStatsToClients,
     }).catch((err) => {
         console.error("Failed to connect to game:", err);
     });
@@ -248,7 +173,7 @@ app.whenReady().then(() => {
     // IPC Handlers
     ipcMain.on("ping", () => console.log("pong"));
     ipcMain.handle("get-game-state", () => {
-        return game ? gameToGameStats(game) : null;
+        return getGameStats();
     });
     ipcMain.handle("get-hud-customize", async () => {
         return store.get("hudCustomize");
