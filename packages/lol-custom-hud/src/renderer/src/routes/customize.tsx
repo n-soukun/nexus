@@ -1,16 +1,25 @@
-import { Save } from "@mui/icons-material";
+import { Edit, Save } from "@mui/icons-material";
 import {
     Box,
     Button,
-    Container,
+    Card,
+    CardContent,
     Divider,
+    FormControl,
     Grid,
+    Rating,
     Stack,
     Typography,
 } from "@mui/material";
+import { LogoView } from "@renderer/components/LogoView";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { TextFieldElement, useForm } from "react-hook-form-mui";
+import {
+    Controller,
+    SelectElement,
+    TextFieldElement,
+    useForm,
+} from "react-hook-form-mui";
 import { HUDCustomize } from "src/types";
 
 export const Route = createFileRoute("/customize")({
@@ -28,6 +37,8 @@ function Customize() {
 
     const blueLogo = watch("blueLogo");
     const redLogo = watch("redLogo");
+    const tournamentLogo = watch("tournamentLogo");
+    const tournamentRule = watch("tournamentRule");
 
     const onSubmit = (data: HUDCustomize): void => {
         if (saving) return;
@@ -39,7 +50,9 @@ function Customize() {
         }, 500);
     };
 
-    const handleSelectIcon = (name: "blueLogo" | "redLogo"): void => {
+    const handleSelectIcon = (
+        name: "blueLogo" | "redLogo" | "tournamentLogo",
+    ): void => {
         window.api.openImageFileDialog().then((filePath) => {
             if (filePath) {
                 setValue(name, filePath);
@@ -49,12 +62,12 @@ function Customize() {
 
     return (
         <Box>
-            <Box sx={{ p: 3, pb: 1 }}>
+            <Box>
                 <iframe
                     src="http://localhost:3000"
                     style={{
                         width: "100%",
-                        height: 121,
+                        height: 136,
                         border: "none",
                     }}
                 />
@@ -68,132 +81,257 @@ function Customize() {
                 </Typography>
             </Box>
             <Divider />
-            <Container sx={{ p: 3 }}>
-                <form onSubmit={handleSubmit(onSubmit)} noValidate>
-                    <Box>
-                        <Typography variant="subtitle1" gutterBottom>
-                            ブルーチーム
-                        </Typography>
-                        <Grid container spacing={2}>
-                            <Grid size={5}>
-                                <TextFieldElement
-                                    id="blue-name"
-                                    name="blueName"
-                                    label="名前"
-                                    control={control}
-                                    required
-                                    sx={{ width: "100%" }}
-                                />
-                            </Grid>
-                            <Grid size={5}>
-                                <TextFieldElement
-                                    id="blue-subtitle"
-                                    name="blueSubtitle"
-                                    label="サブタイトル"
-                                    control={control}
-                                    sx={{ width: "100%" }}
-                                />
-                            </Grid>
-                            <Grid size={2}>
-                                <TextFieldElement
-                                    id="blue-wins"
-                                    name="blueWins"
-                                    label="勝利数"
-                                    type="number"
-                                    control={control}
-                                    required
-                                    sx={{ width: "100%" }}
-                                />
-                            </Grid>
-                        </Grid>
 
-                        <Box sx={{ mt: 2 }}>
-                            <Typography
-                                variant="body2"
-                                sx={{ display: "inline-block", mr: 1 }}
-                            >
-                                アイコン
-                            </Typography>
-                            <TextFieldElement
-                                id="blue-icon"
-                                name="blueLogo"
-                                type="hidden"
-                                control={control}
-                                required
-                                sx={{ display: "none" }}
-                            />
-                            <Stack
-                                direction="row"
-                                spacing={2}
-                                alignItems="center"
-                            >
-                                {blueLogo ? (
-                                    <img
-                                        src={blueLogo}
-                                        alt="Blue Team Icon"
-                                        style={{
-                                            maxWidth: 60,
-                                            maxHeight: 60,
-                                            marginBottom: 8,
-                                        }}
-                                    />
-                                ) : null}
-                                <Button
-                                    variant="outlined"
-                                    component="label"
-                                    onClick={() => handleSelectIcon("blueLogo")}
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={2}
+                    sx={{ px: 3, pt: 3 }}
+                >
+                    <Typography
+                        variant="h6"
+                        component="div"
+                        sx={{ flexGrow: 1 }}
+                    >
+                        カスタマイズ
+                    </Typography>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        startIcon={<Save />}
+                        loading={saving}
+                    >
+                        保存
+                    </Button>
+                </Stack>
+                <Grid container spacing={2} sx={{ p: 3 }}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Card variant="outlined">
+                            <CardContent sx={{ py: 1 }}>
+                                <Typography variant="h6" component="div">
+                                    ブルーチーム
+                                </Typography>
+                            </CardContent>
+                            <Divider />
+                            <CardContent>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    成績
+                                </Typography>
+                                <Controller
+                                    name="blueWins"
+                                    control={control}
+                                    render={({
+                                        field: { onChange, ...field },
+                                    }) => (
+                                        <Rating
+                                            {...field}
+                                            onChange={(_, value) =>
+                                                onChange(value ?? 0)
+                                            }
+                                            max={
+                                                tournamentRule === "bo5" ? 3 : 2
+                                            }
+                                        />
+                                    )}
+                                />
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ mt: 2, mb: 1 }}
                                 >
-                                    Upload File
-                                </Button>
-                            </Stack>
-                        </Box>
-                    </Box>
-                    <Box sx={{ mt: 4 }}>
-                        <Typography variant="subtitle1" gutterBottom>
-                            レッドチーム
-                        </Typography>
-                        <Grid container spacing={2}>
-                            <Grid size={5}>
+                                    チーム情報
+                                </Typography>
+                                <Grid container spacing={2}>
+                                    <Grid size={6}>
+                                        <TextFieldElement
+                                            variant="standard"
+                                            id="blue-name"
+                                            name="blueName"
+                                            label="名前"
+                                            control={control}
+                                            required
+                                            sx={{ width: "100%" }}
+                                        />
+                                    </Grid>
+                                    <Grid size={6}>
+                                        <TextFieldElement
+                                            variant="standard"
+                                            id="blue-subtitle"
+                                            name="blueSubtitle"
+                                            label="サブタイトル"
+                                            control={control}
+                                            sx={{ width: "100%" }}
+                                        />
+                                    </Grid>
+                                </Grid>
                                 <TextFieldElement
-                                    id="red-name"
-                                    name="redName"
-                                    label="名前"
+                                    id="blue-icon"
+                                    name="blueLogo"
+                                    type="hidden"
                                     control={control}
                                     required
-                                    sx={{ width: "100%" }}
+                                    sx={{ display: "none" }}
                                 />
-                            </Grid>
-                            <Grid size={5}>
-                                <TextFieldElement
-                                    id="red-subtitle"
-                                    name="redSubtitle"
-                                    label="サブタイトル"
-                                    control={control}
-                                    sx={{ width: "100%" }}
-                                />
-                            </Grid>
-                            <Grid size={2}>
-                                <TextFieldElement
-                                    id="red-wins"
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ mt: 2, mb: 1 }}
+                                >
+                                    チームロゴ
+                                </Typography>
+
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    spacing={2}
+                                >
+                                    {blueLogo ? (
+                                        <LogoView src={blueLogo} />
+                                    ) : null}
+                                    <Button
+                                        variant="text"
+                                        component="label"
+                                        onClick={() =>
+                                            handleSelectIcon("blueLogo")
+                                        }
+                                        startIcon={<Edit />}
+                                    >
+                                        変更
+                                    </Button>
+                                </Stack>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <Card variant="outlined">
+                            <CardContent sx={{ py: 1 }}>
+                                <Typography variant="h6" component="div">
+                                    レッドチーム
+                                </Typography>
+                            </CardContent>
+                            <Divider />
+                            <CardContent>
+                                <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                                    成績
+                                </Typography>
+                                <Controller
                                     name="redWins"
-                                    label="勝利数"
-                                    type="number"
+                                    control={control}
+                                    render={({
+                                        field: { onChange, ...field },
+                                    }) => (
+                                        <Rating
+                                            {...field}
+                                            onChange={(_, value) =>
+                                                onChange(value ?? 0)
+                                            }
+                                            max={
+                                                tournamentRule === "bo5" ? 3 : 2
+                                            }
+                                        />
+                                    )}
+                                />
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ mt: 2, mb: 1 }}
+                                >
+                                    チーム情報
+                                </Typography>
+                                <Grid container spacing={2}>
+                                    <Grid size={6}>
+                                        <TextFieldElement
+                                            variant="standard"
+                                            id="red-name"
+                                            name="redName"
+                                            label="名前"
+                                            control={control}
+                                            required
+                                            sx={{ width: "100%" }}
+                                        />
+                                    </Grid>
+                                    <Grid size={6}>
+                                        <TextFieldElement
+                                            variant="standard"
+                                            id="red-subtitle"
+                                            name="redSubtitle"
+                                            label="サブタイトル"
+                                            control={control}
+                                            sx={{ width: "100%" }}
+                                        />
+                                    </Grid>
+                                </Grid>
+                                <TextFieldElement
+                                    id="red-icon"
+                                    name="redLogo"
+                                    type="hidden"
                                     control={control}
                                     required
-                                    sx={{ width: "100%" }}
+                                    sx={{ display: "none" }}
                                 />
-                            </Grid>
-                        </Grid>
-                        <Box sx={{ mt: 2 }}>
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ mt: 2, mb: 1 }}
+                                >
+                                    チームロゴ
+                                </Typography>
+
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    spacing={2}
+                                >
+                                    {redLogo ? (
+                                        <LogoView src={redLogo} />
+                                    ) : null}
+                                    <Button
+                                        variant="text"
+                                        component="label"
+                                        onClick={() =>
+                                            handleSelectIcon("redLogo")
+                                        }
+                                        startIcon={<Edit />}
+                                    >
+                                        変更
+                                    </Button>
+                                </Stack>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Card variant="outlined" sx={{ mt: 2, width: "100%" }}>
+                        <CardContent sx={{ py: 1 }}>
+                            <Typography variant="h6" component="div">
+                                全般
+                            </Typography>
+                        </CardContent>
+                        <Divider />
+                        <CardContent>
                             <Typography
-                                variant="body2"
-                                sx={{ display: "inline-block", mr: 1 }}
+                                variant="subtitle2"
+                                sx={{ mt: 2, mb: 1 }}
                             >
-                                アイコン
+                                トーナメント
+                            </Typography>
+                            <FormControl fullWidth sx={{ maxWidth: 240 }}>
+                                <SelectElement
+                                    variant="standard"
+                                    label="ルール"
+                                    id="tournament-rule"
+                                    name="tournamentRule"
+                                    control={control}
+                                    options={[
+                                        { id: "bo3", label: "BO3" },
+                                        { id: "bo5", label: "BO5" },
+                                    ]}
+                                />
+                            </FormControl>
+                            <Typography
+                                variant="subtitle2"
+                                sx={{ mt: 2, mb: 1 }}
+                            >
+                                ブランドロゴ
                             </Typography>
                             <TextFieldElement
-                                id="red-icon"
-                                name="redLogo"
+                                id="tournament-icon"
+                                name="tournamentLogo"
                                 type="hidden"
                                 control={control}
                                 required
@@ -201,43 +339,27 @@ function Customize() {
                             />
                             <Stack
                                 direction="row"
-                                spacing={2}
                                 alignItems="center"
+                                spacing={2}
                             >
-                                {redLogo ? (
-                                    <img
-                                        src={redLogo}
-                                        alt="Red Team Icon"
-                                        style={{
-                                            maxWidth: 60,
-                                            maxHeight: 60,
-                                            marginBottom: 8,
-                                        }}
-                                    />
+                                {tournamentLogo ? (
+                                    <LogoView src={tournamentLogo} />
                                 ) : null}
                                 <Button
-                                    variant="outlined"
+                                    variant="text"
                                     component="label"
-                                    onClick={() => handleSelectIcon("redLogo")}
+                                    onClick={() =>
+                                        handleSelectIcon("tournamentLogo")
+                                    }
+                                    startIcon={<Edit />}
                                 >
-                                    Upload File
+                                    変更
                                 </Button>
                             </Stack>
-                        </Box>
-                    </Box>
-                    <Box sx={{ textAlign: "right" }}>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            sx={{ mt: 4 }}
-                            startIcon={<Save />}
-                            loading={saving}
-                        >
-                            保存
-                        </Button>
-                    </Box>
-                </form>
-            </Container>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </form>
         </Box>
     );
 }

@@ -23,6 +23,9 @@ const api = {
     setHUDCustomize: (data: HUDCustomize) =>
         ipcRenderer.invoke("set-hud-customize", data),
     openImageFileDialog: () => ipcRenderer.invoke("open-image-file-dialog"),
+    restartHttpServer: (port: number) =>
+        ipcRenderer.invoke("restart-http-server", port),
+    getHttpServerStatus: () => ipcRenderer.invoke("get-http-server-status"),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

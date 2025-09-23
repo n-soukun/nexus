@@ -21,6 +21,11 @@ declare global {
             getHUDCustomize: () => Promise<HUDCustomize>;
             setHUDCustomize: (data: HUDCustomize) => Promise<void>;
             openImageFileDialog: () => Promise<string | null>;
+            restartHttpServer: (port: number) => Promise<boolean>;
+            getHttpServerStatus: () => Promise<{
+                running: boolean;
+                port: number;
+            }>;
         };
     }
 }

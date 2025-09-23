@@ -36,7 +36,7 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
         navigate({ to: link });
     };
     return (
-        <Box sx={{ display: "flex", flexGrow: 1 }}>
+        <Box sx={{ display: "flex", flexGrow: 1 }} width={"100%"}>
             <AppBar
                 variant="outlined"
                 color="default"
@@ -68,7 +68,7 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                     },
                 }}
             >
-                <Toolbar />
+                <Toolbar variant="dense" />
                 <Box sx={{ overflow: "auto" }}>
                     <List>
                         {MenuList.map((item, index) => (
@@ -84,9 +84,19 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                     </List>
                 </Box>
             </Drawer>
-            <Box component="main" sx={{ flexGrow: 1 }}>
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100vh",
+                }}
+            >
                 <Toolbar variant="dense" />
-                <Box {...rest}>{children}</Box>
+                <Box {...rest} overflow="auto" flexGrow={1}>
+                    {children}
+                </Box>
             </Box>
         </Box>
     );

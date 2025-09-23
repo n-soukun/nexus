@@ -36,6 +36,7 @@
         "electron-updater": "^6.3.9",
         "express": "^5.1.0",
         "express-ws": "^5.0.2",
+        "node-screenshots": "0.2.1",
         "react-hook-form": "^7.63.0",
         "react-hook-form-mui": "^8.0.0"
     },
@@ -51,7 +52,7 @@
         "@types/react-dom": "^19.1.9",
         "@vitejs/plugin-react": "^5.0.3",
         "electron": "^38.1.2",
-        "electron-builder": "^25.1.8",
+        "electron-builder": "^26.0.11",
         "electron-vite": "^4.0.1",
         "eslint": "^9.36.0",
         "eslint-plugin-react": "^7.37.5",

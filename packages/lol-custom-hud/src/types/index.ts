@@ -24,6 +24,8 @@ export interface GameTime {
 }
 
 export interface HUDCustomize {
+    tournamentRule: "bo3" | "bo5";
+    tournamentLogo: string;
     blueName: string;
     blueSubtitle: string;
     blueWins: number;
@@ -39,4 +41,8 @@ export interface WindowState {
     y: number;
     width: number;
     height: number;
+}
+
+export interface HTTPServerConfig {
+    port: number;
 }
