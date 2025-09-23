@@ -1,0 +1,26 @@
+{
+    "name": "@lol-observer/core",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "prepare": "npm run build"
+    },
+    "keywords": [],
+    "author": "n-soukun",
+    "license": "MIT",
+    "packageManager": "pnpm@10.17.0",
+    "dependencies": {
+        "@lol-observer/leagoflegends-client": "workspace:*",
+        "axios": "^1.12.2",
+        "node-screenshots": "0.2.1",
+        "sharp": "0.34.4",
+        "tesseract.js": "6.0.1"
+    },
+    "devDependencies": {
+        "@types/node": "24.5.2",
+        "typescript": "5.9.2"
+    }
+}

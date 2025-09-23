@@ -1,0 +1,283 @@
+import { app, shell, BrowserWindow, ipcMain, dialog } from "electron";
+import { join } from "path";
+import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+import { Game, GameOnlyEvents, TeamEvents } from "@lol-observer/core";
+import Store from "electron-store";
+import { base64 } from "base64-img";
+import type { WebSocket as WsWebSocket } from "ws";
+import type { GameStats, GameTime, HUDCustomize } from "../types";
+import icon from "../../resources/icon.png?asset";
+
+import { startServer } from "./server";
+import {
+    ReceiveMessageNames,
+    registerReceiveMessageHandler,
+    sendMessage,
+    SendMessageNames,
+} from "./websocket";
+
+let game: Game | null = null;
+
+interface StoreSchema {
+    hudCustomize: HUDCustomize;
+}
+
+const store = new Store<StoreSchema>({
+    defaults: {
+        hudCustomize: {
+            blueName: "BLUE",
+            blueSubtitle: "EMEA#1",
+            blueWins: 0,
+            blueLogo:
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA9CAYAAADxoArXAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAxwSURBVHgB7Vp5kBTVGf/6mpnd2ZmdWdiFRTYugSiClgbwDLqbKssEQwIxheQfWY2l0apoVayUscRwVGkZ0RgOKxWNgial8YgVFURNYuQw5FDEELlkkVkWxGVh51rm7O6X73vT3fT09szuLIOJVfPb6uqZntev3+99v+94rxeghhpqqKGGGmqooYYaqgIBqgPez9Z7bg81y/4QKGK75BGYxtgkURCZwISQzvQQAwjJIDTiBfwOgp5Kx3LxRAxvjYkigKazHhE/5FQtQv3JEsSSqhqZ/atnY4IgMKgCRkvYum//gz/tAF3sZMA68WvHSDtQE3HQUqkRthY24QRtZqK++aLVv91EVxjDGRvFJFRMeOc9t4d9gcZ5wKATHzgPiYYquZ9pGuTjMWC5HIwSMaS6GQXxiiTBpqm/XNdDF0dKXqikzb/mdSwTZOnOxhmXVETShJZOgZZIcOtUA56mMTEQhVXnLv3FcrPP4YiXJYyd4P0C/OO6jk5Rh7V4pZ2uN0ydDnKgEUYKGoyWTFQg4eEh1dWB3GjNeySv5a6bvuTRD+lx5e4TXAbHSRK23bwg7ElGH2W63mVvQ2Tr2tpB9HphOLB8HvKxKJdytSCglkUkLIhS8Q+57NPHjxy+68rnXo9CgdsQ8vKQzlASRHrZsmWC7+CORwVffZezjZ7NQmLndnywDFJ9Pc62H+RgECfAh9/9Vjvt5CCoySScDoic4PGAKCtoVolPMhkkFTkADMfhwI1+kVvrJvN2cJB2kzRdE95b9J0bcTaecvkddLSalj4JrgPEtKKEx4AgeyAdGwDdsCwfOOUeF6CCLAVISMzj82EfTaikYEkVZY9+ipE+5vqbzthdM3+3fqXZfdH4XNqLby+cM6nJq7yPn12Dk57LgpZJFzqgCUVLizJmWEXB78Wk8hiNc+i7uXR5/5U9XqgLBPDsKR4M9imSihqCXE2mjLPHPgM1OlCqu1jO451x6ZMvRcBB2j46YenSpfRdCHvkl0uR5Q2RnITylf0N3J9llLHo8Q4hS1CQgD8UgsaWceDzYzvplN/RZBHJ0PhWCIwZM4QsgdSkxuOQPdILqf37IH2oB/IDJzCRq1AGISWXWUf8kFORUQXHWfyga94S9OIlzh64VJvGYLAgH2WQ6e2B0SKLvi2iKhSU7mihYh+M6SDRRKMbuLmLIe1VSBqWL1+u0zU7YcGQcrd5A3Ui1aMV0Z9ITnZkeiOjSjMU8LRchn+WPL4RRXonyOfVwUTRNQqgIiqEkxdOGTWt6Vdf8eyGd6Aga8aJktkv/Pe74fZA/XZsfDZFWonkGgqXDDRa6mRFVqZBUuHBNHXIQKW6+pLPcYNK/eRLV2qC4gFJ8XDXQ/aRg/Gjs777x38OUAbihIGkfNN1a73h8CI5GOLBZyRI7d/LiQwHHQOXlk1TkndvQErCmCAqnmH7crNuSWC/NKE4AatnPbfxx3Q7D1J0aI1N60V/Q2ykZAkk9bKDQ4IqKkHLpEqTJRjW55YbZgJZ+WBVBFKN3BCIZer9G6AQoAVxwYIFXPAXr3xyw47uA5dn+vsO8eJ+BJURz7clpKjjwNTBJA4wDyMFyVRNDWJkLi1XLZsZth+Ssu+sNghc8NWe6PgJ35z95EtbwDCstHv3bi5pOrb0RQfPa/ZvHO/1zmWpVCMFGGpGpNyI0TWKlLotx5JV9UwGgxPl6VEsEvB+Pkl4pkgOtgBErsHU0pNBKdI7fgLUT5oCYiB06G+RQ3O/t2bdx+3t7Wzy5Mns6NGjuoQWFok0XhQ1TRPe/Lh38Jyx/o1nNQSuFHXWwqMqypLOOgYcej75hUUa/c4sAMiq1NYZmEYDUpiOxEVb1OXFDtNdSfonnwPelvEkYUBt/mfLvp7rb33mBYqqLBQKsT179jDkys1MlYB5lo2zdPvsWeEfXHDuYz5ZnuMcDA2AfJ3XtXimMi+PpPV8Fs4EKH0BylRDudMzFQysEhKj8tM++YTBXO6FNW9vuXfdu+8PNDU16QMDAxoaU4tEImQF3ZKzcZikzc/Clluuvyfsq/tJuQGRNWIHuwsyRJmLosAnhT7bc2IlINfgy0oNXQYDWXDyV8CH1ZqToB3JdObxmfevvK+xsVGLx+MkBW3ixIna4cOHiSyzE7YTN60sBINBCR8mbVx47d3h+vKk09ETMNj3metvXBHkCkadI2F5ad8E4BUBLSDoj8GQDQI/SjY8dRqUQzSdfvjS+1etIJJEzHa2f+ZpidkO80du/kQioQ8ODmpXPfXiQ8dTmfvKPbAOI7biqMYsQhTIcFNKo/SDh6mAPPo8HSr5vq7zNk6ysq8Ogu1fLvdoOJE6ufjqVWtXmKSam5uLyGJhVUSYj4kuoFPzBqh5fh47dqxmTID29ade+PUnA/EbcTzxUg9uaGmF4UBEycKKIo9I7g0T20AqUXPjWBJ7+vrmX/7AmsfRfayx9vf3a1OmTDG/M6yjjfasaHnI8xTl5V27dpnpiqQt2s8Pzrmqbc7k9lclQWhzG8TJ48cgdbwfSkHB4OP1FiqqXC4PuXzpPO3BwNQy61LX31Rd793Re7jrtt+v35lMJp3StVvYVC/n7NgjAQGJAs4Q/4KzBPUoU5S2OSHwdndPoi0cfHNKU+ha3FwYsrGlYImYxf0rprsXLnU+r2VZU9al0DLjEr7OdgLl3/uXXXvn3fLMH/bh+DDtZ5hB0iJKakUuZg5zXQ+TyYv8ubu7W8cIx2fM8Ave4c+3fdjzp8jB+SrTP3IOhnY2Aq0TwA1kXbuMKYpLknulRn7rJuW8pn30+od75935/Gs8x8ZiMd1GVjPJTps2zaAz/I6HuZHHR9LZ2Sls2rSJ52Y4la+5vG++fEb4tovOW+2Wq5NHj0AmXrwFU4cEnASx2IF0pjh/U6Aaf9nXhoyLcuyqP29e/My27VEsJnQkawUjKARaM/AOsWxZwo7frOIEc5qUz+fFvr4+EXOdjLmuUJLecv3dzlxNufnEgf2WtCky1+NOoxvSWIpSvjXRetnsIdY1c6yNkJvPMscxBCUXoaw4P/AHoLw1JMulg2RV40HaVb958aFoKv2I/X6Str+52fruKbMKk23FhJuUoyfTDzvIauPGjbNkjCrUMfXgBgezByqoiLDha8zgzjuhjqlDW8jnM4sFik65+lgq/TN7H2ZuJuvKcukKSca3ZvQ8knJg4peKfutPDt539Zq1K+gZ4XDYei5OPCeO/qp1dHTomHqq86rFeGlltrU2DKA4ZZmfhVcXzZ/bHgyuxggepJtoEy5x6BPwesov7ilFBc+dBr6xBVVgDZLYd6xv0Q1Pv7zVyBJEUAWbpMkAGF90Vgg6VXu35GxrbRrQ59bWVgmXXWZJyq+tmHvl2de0T3rFzNX5eLTkHrIJz9gWvqwjUI597+Dhrq61z+2E8v7qzLPDYuQbScXlp3UgWXMAKkqOX7t7w9ae1/cfnI/vh3vpRlrCCWUkTSsgWrATKMe+9dHu+Xay6K+qjaxFnFyNVfhmrhLCHLbcZk0A5jw+ICwZdVyS8QEtfmtrhEjndX0XbRR4ws0l+/RNaOP72pRj1+/YPX/Jxs09mHZ4P5T/DX9VZ86cSTmWYYDigygsSipbjY32hbjp2+YKi6oyCQsVEa0hYuqScB3K/bpr5vmhH11y4RrK1bmBfv6+yQ5TyhlVfeOxzdvueOKv26KY8hhmgaLKichu3769bI4dCU73Xx74/bTNi1FySGECtrX2th9+/4EGWbk1+2kvMGPXgqTcMPV8SKrsiYsfWLkYDHLmwh2K/dfuUqNGxZK2w/QfSgnGEoyhvO0pyxr0FY8/f28sk33E9k6XSzme1x82yFptDbL8MGUMpwifrpGqAnNDn1sWB6mgxOmVAr2XCUDhPVUYjzHv3Lxw8fsLr2Ef3PBt9vfFd9xL14zfQkZbuocqD8pjXCWUdar1XwNVmS37S3Q4lbKKJE3faQeFcuprC77xLaWhkc1Z9+IbYFgV1966z+dTjcWKufopWtpBFXAm5GH2afq05c/omyLK1XQjwUhjEI1GuXxRFbrH42G4rOPyZsUzWRXCp+XDbrBJz14ccEKKovDtIwpKdMZyU0OyZk1Oy1Ft+vTpJlkwyFZUWPyvYPk0BhyyLq0cyCfJN+uwOqPNLzrq4JS/mrul5K//F4GpUjjrbh7MoEDOaxz0WcGaWDYmxixbz+igzhhssjSf5XwBb5dq2XVstfB5ScdJ1IkvhJ9WBCOYmf7pnIAvpM/WUEMNnz/+CwR+8/bGRI4NAAAAAElFTkSuQmCC",
+            redName: "RED",
+            redSubtitle: "EMEA#2",
+            redWins: 0,
+            redLogo:
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA9CAYAAADxoArXAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAxwSURBVHgB7Vp5kBTVGf/6mpnd2ZmdWdiFRTYugSiClgbwDLqbKssEQwIxheQfWY2l0apoVayUscRwVGkZ0RgOKxWNgial8YgVFURNYuQw5FDEELlkkVkWxGVh51rm7O6X73vT3fT09szuLIOJVfPb6uqZntev3+99v+94rxeghhpqqKGGGmqooYYaqgIBqgPez9Z7bg81y/4QKGK75BGYxtgkURCZwISQzvQQAwjJIDTiBfwOgp5Kx3LxRAxvjYkigKazHhE/5FQtQv3JEsSSqhqZ/atnY4IgMKgCRkvYum//gz/tAF3sZMA68WvHSDtQE3HQUqkRthY24QRtZqK++aLVv91EVxjDGRvFJFRMeOc9t4d9gcZ5wKATHzgPiYYquZ9pGuTjMWC5HIwSMaS6GQXxiiTBpqm/XNdDF0dKXqikzb/mdSwTZOnOxhmXVETShJZOgZZIcOtUA56mMTEQhVXnLv3FcrPP4YiXJYyd4P0C/OO6jk5Rh7V4pZ2uN0ydDnKgEUYKGoyWTFQg4eEh1dWB3GjNeySv5a6bvuTRD+lx5e4TXAbHSRK23bwg7ElGH2W63mVvQ2Tr2tpB9HphOLB8HvKxKJdytSCglkUkLIhS8Q+57NPHjxy+68rnXo9CgdsQ8vKQzlASRHrZsmWC7+CORwVffZezjZ7NQmLndnywDFJ9Pc62H+RgECfAh9/9Vjvt5CCoySScDoic4PGAKCtoVolPMhkkFTkADMfhwI1+kVvrJvN2cJB2kzRdE95b9J0bcTaecvkddLSalj4JrgPEtKKEx4AgeyAdGwDdsCwfOOUeF6CCLAVISMzj82EfTaikYEkVZY9+ipE+5vqbzthdM3+3fqXZfdH4XNqLby+cM6nJq7yPn12Dk57LgpZJFzqgCUVLizJmWEXB78Wk8hiNc+i7uXR5/5U9XqgLBPDsKR4M9imSihqCXE2mjLPHPgM1OlCqu1jO451x6ZMvRcBB2j46YenSpfRdCHvkl0uR5Q2RnITylf0N3J9llLHo8Q4hS1CQgD8UgsaWceDzYzvplN/RZBHJ0PhWCIwZM4QsgdSkxuOQPdILqf37IH2oB/IDJzCRq1AGISWXWUf8kFORUQXHWfyga94S9OIlzh64VJvGYLAgH2WQ6e2B0SKLvi2iKhSU7mihYh+M6SDRRKMbuLmLIe1VSBqWL1+u0zU7YcGQcrd5A3Ui1aMV0Z9ITnZkeiOjSjMU8LRchn+WPL4RRXonyOfVwUTRNQqgIiqEkxdOGTWt6Vdf8eyGd6Aga8aJktkv/Pe74fZA/XZsfDZFWonkGgqXDDRa6mRFVqZBUuHBNHXIQKW6+pLPcYNK/eRLV2qC4gFJ8XDXQ/aRg/Gjs777x38OUAbihIGkfNN1a73h8CI5GOLBZyRI7d/LiQwHHQOXlk1TkndvQErCmCAqnmH7crNuSWC/NKE4AatnPbfxx3Q7D1J0aI1N60V/Q2ykZAkk9bKDQ4IqKkHLpEqTJRjW55YbZgJZ+WBVBFKN3BCIZer9G6AQoAVxwYIFXPAXr3xyw47uA5dn+vsO8eJ+BJURz7clpKjjwNTBJA4wDyMFyVRNDWJkLi1XLZsZth+Ssu+sNghc8NWe6PgJ35z95EtbwDCstHv3bi5pOrb0RQfPa/ZvHO/1zmWpVCMFGGpGpNyI0TWKlLotx5JV9UwGgxPl6VEsEvB+Pkl4pkgOtgBErsHU0pNBKdI7fgLUT5oCYiB06G+RQ3O/t2bdx+3t7Wzy5Mns6NGjuoQWFok0XhQ1TRPe/Lh38Jyx/o1nNQSuFHXWwqMqypLOOgYcej75hUUa/c4sAMiq1NYZmEYDUpiOxEVb1OXFDtNdSfonnwPelvEkYUBt/mfLvp7rb33mBYqqLBQKsT179jDkys1MlYB5lo2zdPvsWeEfXHDuYz5ZnuMcDA2AfJ3XtXimMi+PpPV8Fs4EKH0BylRDudMzFQysEhKj8tM++YTBXO6FNW9vuXfdu+8PNDU16QMDAxoaU4tEImQF3ZKzcZikzc/Clluuvyfsq/tJuQGRNWIHuwsyRJmLosAnhT7bc2IlINfgy0oNXQYDWXDyV8CH1ZqToB3JdObxmfevvK+xsVGLx+MkBW3ixIna4cOHiSyzE7YTN60sBINBCR8mbVx47d3h+vKk09ETMNj3metvXBHkCkadI2F5ad8E4BUBLSDoj8GQDQI/SjY8dRqUQzSdfvjS+1etIJJEzHa2f+ZpidkO80du/kQioQ8ODmpXPfXiQ8dTmfvKPbAOI7biqMYsQhTIcFNKo/SDh6mAPPo8HSr5vq7zNk6ysq8Ogu1fLvdoOJE6ufjqVWtXmKSam5uLyGJhVUSYj4kuoFPzBqh5fh47dqxmTID29ade+PUnA/EbcTzxUg9uaGmF4UBEycKKIo9I7g0T20AqUXPjWBJ7+vrmX/7AmsfRfayx9vf3a1OmTDG/M6yjjfasaHnI8xTl5V27dpnpiqQt2s8Pzrmqbc7k9lclQWhzG8TJ48cgdbwfSkHB4OP1FiqqXC4PuXzpPO3BwNQy61LX31Rd793Re7jrtt+v35lMJp3StVvYVC/n7NgjAQGJAs4Q/4KzBPUoU5S2OSHwdndPoi0cfHNKU+ha3FwYsrGlYImYxf0rprsXLnU+r2VZU9al0DLjEr7OdgLl3/uXXXvn3fLMH/bh+DDtZ5hB0iJKakUuZg5zXQ+TyYv8ubu7W8cIx2fM8Ave4c+3fdjzp8jB+SrTP3IOhnY2Aq0TwA1kXbuMKYpLknulRn7rJuW8pn30+od75935/Gs8x8ZiMd1GVjPJTps2zaAz/I6HuZHHR9LZ2Sls2rSJ52Y4la+5vG++fEb4tovOW+2Wq5NHj0AmXrwFU4cEnASx2IF0pjh/U6Aaf9nXhoyLcuyqP29e/My27VEsJnQkawUjKARaM/AOsWxZwo7frOIEc5qUz+fFvr4+EXOdjLmuUJLecv3dzlxNufnEgf2WtCky1+NOoxvSWIpSvjXRetnsIdY1c6yNkJvPMscxBCUXoaw4P/AHoLw1JMulg2RV40HaVb958aFoKv2I/X6Str+52fruKbMKk23FhJuUoyfTDzvIauPGjbNkjCrUMfXgBgezByqoiLDha8zgzjuhjqlDW8jnM4sFik65+lgq/TN7H2ZuJuvKcukKSca3ZvQ8knJg4peKfutPDt539Zq1K+gZ4XDYei5OPCeO/qp1dHTomHqq86rFeGlltrU2DKA4ZZmfhVcXzZ/bHgyuxggepJtoEy5x6BPwesov7ilFBc+dBr6xBVVgDZLYd6xv0Q1Pv7zVyBJEUAWbpMkAGF90Vgg6VXu35GxrbRrQ59bWVgmXXWZJyq+tmHvl2de0T3rFzNX5eLTkHrIJz9gWvqwjUI597+Dhrq61z+2E8v7qzLPDYuQbScXlp3UgWXMAKkqOX7t7w9ae1/cfnI/vh3vpRlrCCWUkTSsgWrATKMe+9dHu+Xay6K+qjaxFnFyNVfhmrhLCHLbcZk0A5jw+ICwZdVyS8QEtfmtrhEjndX0XbRR4ws0l+/RNaOP72pRj1+/YPX/Jxs09mHZ4P5T/DX9VZ86cSTmWYYDigygsSipbjY32hbjp2+YKi6oyCQsVEa0hYuqScB3K/bpr5vmhH11y4RrK1bmBfv6+yQ5TyhlVfeOxzdvueOKv26KY8hhmgaLKichu3769bI4dCU73Xx74/bTNi1FySGECtrX2th9+/4EGWbk1+2kvMGPXgqTcMPV8SKrsiYsfWLkYDHLmwh2K/dfuUqNGxZK2w/QfSgnGEoyhvO0pyxr0FY8/f28sk33E9k6XSzme1x82yFptDbL8MGUMpwifrpGqAnNDn1sWB6mgxOmVAr2XCUDhPVUYjzHv3Lxw8fsLr2Ef3PBt9vfFd9xL14zfQkZbuocqD8pjXCWUdar1XwNVmS37S3Q4lbKKJE3faQeFcuprC77xLaWhkc1Z9+IbYFgV1966z+dTjcWKufopWtpBFXAm5GH2afq05c/omyLK1XQjwUhjEI1GuXxRFbrH42G4rOPyZsUzWRXCp+XDbrBJz14ccEKKovDtIwpKdMZyU0OyZk1Oy1Ft+vTpJlkwyFZUWPyvYPk0BhyyLq0cyCfJN+uwOqPNLzrq4JS/mrul5K//F4GpUjjrbh7MoEDOaxz0WcGaWDYmxixbz+igzhhssjSf5XwBb5dq2XVstfB5ScdJ1IkvhJ9WBCOYmf7pnIAvpM/WUEMNnz/+CwR+8/bGRI4NAAAAAElFTkSuQmCC",
+        },
+    },
+});
+
+function gameToGameStats(game: Game): GameStats {
+    return {
+        blueTeam: {
+            kills: game.teams.ORDER.kills,
+            turrets: game.teams.ORDER.killTurrets,
+            golds: game.teams.ORDER.golds,
+            killHordes: game.teams.ORDER.killHordes,
+            dragons: game.teams.ORDER.dragons,
+            killAtakhans: game.teams.ORDER.killAtakhans,
+            featsProgress: game.teams.ORDER.featsProgress,
+        },
+        redTeam: {
+            kills: game.teams.CHAOS.kills,
+            turrets: game.teams.CHAOS.killTurrets,
+            golds: game.teams.CHAOS.golds,
+            killHordes: game.teams.CHAOS.killHordes,
+            dragons: game.teams.CHAOS.dragons,
+            killAtakhans: game.teams.CHAOS.killAtakhans,
+            featsProgress: game.teams.CHAOS.featsProgress,
+        },
+    };
+}
+
+export function getCurrentGameData(): {
+    gameStats: GameStats;
+    gameTime: GameTime;
+} | null {
+    if (!game) {
+        const stats = gameToGameStats(game!);
+        const time = { seconds: game!.gameTime };
+        return { gameStats: stats, gameTime: time };
+    }
+    return null;
+}
+
+function handleReciveRequestCurrentData(ws: WsWebSocket): void {
+    if (game) {
+        const stats = gameToGameStats(game);
+        const time = { seconds: game.gameTime };
+        sendMessage(SendMessageNames.GameStats, stats, ws);
+        sendMessage(SendMessageNames.GameTime, time, ws);
+    }
+    const customize = store.get("hudCustomize");
+    sendMessage(SendMessageNames.HUDCustomize, customize, ws);
+}
+
+async function main({
+    timeFn,
+    statsFn,
+}: {
+    timeFn: (seconds: GameTime) => void;
+    statsFn: (stats: GameStats | null) => void;
+}): Promise<void> {
+    if (game) {
+        game.on(GameOnlyEvents.Update, (game) => {
+            timeFn({
+                seconds: game.gameTime,
+            });
+        });
+        game.teams.ORDER.on(TeamEvents.Update, (team) => {
+            console.log("ORDER team updated");
+            statsFn(gameToGameStats(team.game));
+        });
+        game.teams.CHAOS.on(TeamEvents.Update, (team) => {
+            statsFn(gameToGameStats(team.game));
+        });
+        game.on(GameOnlyEvents.Disconnected, () => {
+            console.log("Game disconnected");
+            game = null;
+            statsFn(null);
+            main({ timeFn, statsFn });
+        });
+    } else {
+        while (true) {
+            const result = await Game.checkGameAvailable();
+            if (result) {
+                game = await Game.connect();
+                console.log("Game found:", game.gameMode);
+                statsFn(gameToGameStats(game));
+                main({ timeFn, statsFn });
+                break;
+            }
+        }
+    }
+}
+
+function createWindow(): void {
+    startServer()
+        .then(() => {
+            console.log("Server started");
+        })
+        .catch((err) => {
+            console.error("Failed to start server:", err);
+        });
+
+    // Create the browser window.
+    const mainWindow = new BrowserWindow({
+        width: 900,
+        height: 670,
+        autoHideMenuBar: true,
+        ...(process.platform === "linux" ? { icon } : {}),
+        webPreferences: {
+            preload: join(__dirname, "../preload/index.js"),
+            sandbox: false,
+        },
+        titleBarStyle: "hidden",
+        titleBarOverlay: {
+            color: "#f5f5f5",
+            symbolColor: "#000",
+            height: 49,
+        },
+    });
+
+    // デバッグウィンドウを開く
+    if (is.dev) {
+        mainWindow.webContents.openDevTools();
+    }
+
+    mainWindow.webContents.setWindowOpenHandler((details) => {
+        shell.openExternal(details.url);
+        return { action: "deny" };
+    });
+
+    const sendStatsToClients = (stats: GameStats | null): void => {
+        sendMessage(SendMessageNames.GameStats, stats);
+        mainWindow.webContents.send("game-state-changed", stats);
+    };
+
+    const sendGameTimeToClients = (time: GameTime): void => {
+        sendMessage(SendMessageNames.GameTime, time);
+        mainWindow.webContents.send("game-time-changed", time);
+    };
+
+    registerReceiveMessageHandler(
+        ReceiveMessageNames.RequestCurrentData,
+        handleReciveRequestCurrentData,
+    );
+
+    main({
+        timeFn: sendGameTimeToClients,
+        statsFn: sendStatsToClients,
+    }).catch((err) => {
+        console.error("Failed to connect to game:", err);
+    });
+
+    // HMR for renderer base on electron-vite cli.
+    // Load the remote URL for development or the local html file for production.
+    if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+        mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+    } else {
+        mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    }
+}
+
+function handleOpenImageFileDialog(): Promise<string | null> {
+    return new Promise((resolve) => {
+        dialog
+            .showOpenDialog({
+                title: "画像ファイルを選択",
+                properties: ["openFile"],
+                filters: [
+                    {
+                        name: "Images",
+                        extensions: ["png", "jpg", "jpeg", "webp", "svg"],
+                    },
+                ],
+            })
+            .then((result: { canceled: boolean; filePaths: string[] }) => {
+                if (result.canceled || result.filePaths.length === 0) {
+                    resolve(null);
+                } else {
+                    const filePath = result.filePaths[0];
+                    base64(filePath, (err, data) => {
+                        if (err) {
+                            console.error(
+                                "Failed to convert image to base64:",
+                                err,
+                            );
+                            resolve(null);
+                        } else {
+                            resolve(data);
+                        }
+                    });
+                }
+            })
+            .catch((err: Error) => {
+                console.error("Failed to open file dialog:", err);
+                resolve(null);
+            });
+    });
+}
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.whenReady().then(() => {
+    // Set app user model id for windows
+    electronApp.setAppUserModelId("com.electron");
+
+    // Default open or close DevTools by F12 in development
+    // and ignore CommandOrControl + R in production.
+    // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+    app.on("browser-window-created", (_, window) => {
+        optimizer.watchWindowShortcuts(window);
+    });
+
+    // IPC Handlers
+    ipcMain.on("ping", () => console.log("pong"));
+    ipcMain.handle("get-game-state", () => {
+        return game ? gameToGameStats(game) : null;
+    });
+    ipcMain.handle("get-hud-customize", async () => {
+        return store.get("hudCustomize");
+    });
+    ipcMain.handle("set-hud-customize", async (_event, data: HUDCustomize) => {
+        store.set("hudCustomize", data);
+        sendMessage(SendMessageNames.HUDCustomize, data);
+    });
+    ipcMain.handle("open-image-file-dialog", async () => {
+        return handleOpenImageFileDialog();
+    });
+
+    createWindow();
+
+    app.on("activate", function () {
+        // On macOS it's common to re-create a window in the app when the
+        // dock icon is clicked and there are no other windows open.
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+});
+
+// Quit when all windows are closed, except on macOS. There, it's common
+// for applications and their menu bar to stay active until the user quits
+// explicitly with Cmd + Q.
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+        app.quit();
+    }
+});
+
+// In this file you can include the rest of your app's specific main process
+// code. You can also put them in separate files and require them here.

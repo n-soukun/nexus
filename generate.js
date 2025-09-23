@@ -2,10 +2,17 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
+const SwaggerFilePath = "./swagger.json";
+const OutputDir = "./packages/leagoflegends-client";
+const GeneratorName = "typescript-axios";
+const NpmName = "@private/leagoflegends-client";
+const NpmVersion = "1.0.0";
+const SupportsES6 = true;
+
 function generateSqaggerClient() {
     try {
         execSync(
-            "npx @openapitools/openapi-generator-cli generate -i swagger.json -g typescript-axios -o src/generated/openapi --additional-properties=ngVersion=6.1.7,npmName=restClient,supportsES6=true,npmVersion=6.9.0,withInterfaces=true,modelPropertyNaming=camelCase,enumPropertyNaming=camelCase,prefixParameterInterfaces=true,useSingleRequestParameter=true,modelNamePrefix=LoL,modelNameSuffix=Model,generateAliasAsModel=true,nullSafeAdditionalProps=true,stringEnums=true --skip-validate-spec",
+            `npx @openapitools/openapi-generator-cli generate -i ${SwaggerFilePath} -g ${GeneratorName} -o ${OutputDir} --additional-properties=ngVersion=6.1.7,npmName=${NpmName},supportsES6=${SupportsES6},npmVersion=${NpmVersion},withInterfaces=true,modelPropertyNaming=camelCase,enumPropertyNaming=camelCase,prefixParameterInterfaces=true,useSingleRequestParameter=true,modelNamePrefix=LoL,modelNameSuffix=Model,generateAliasAsModel=true,nullSafeAdditionalProps=true,stringEnums=true --skip-validate-spec`,
             { stdio: "inherit" }
         );
         console.log("Swagger client generated successfully.");
@@ -15,7 +22,7 @@ function generateSqaggerClient() {
     }
 
     // ファイルの修正
-    const targetDir = "./src/generated/openapi"; // 対象フォルダ
+    const targetDir = OutputDir; // 対象フォルダ
 
     const fixPatterns = [
         // UNKNOWN_PARAMETER_NAME?: , を UNKNOWN_PARAMETER_NAME?: any, に置換
