@@ -14,7 +14,12 @@ export function getPublicPath(): string {
     if (isDev) {
         return path.join(__dirname, "../../resources/overlay");
     } else {
-        return path.join(process.resourcesPath, "overlay");
+        return path.join(
+            process.resourcesPath,
+            "app.asar.unpacked",
+            "resources",
+            "overlay",
+        );
     }
 }
 
@@ -28,6 +33,14 @@ export function startServer(
     app.use(express.static(getPublicPath())); // 静的ファイルを配信
 
     app.use("/ws", wsRouter); // WebSocketルーターを使用
+
+    app.get("/debug-info", (_req, res) => {
+        res.json({
+            status: "ok",
+            timestamp: Date.now(),
+            overlayPath: getPublicPath(),
+        });
+    });
 
     return new Promise((resolve, reject) => {
         server = app.listen(port, () => {

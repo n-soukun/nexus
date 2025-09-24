@@ -29,16 +29,23 @@ export const Route = createFileRoute("/customize")({
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function Customize() {
     const [saving, setSaving] = useState(false);
-    const { control, handleSubmit, watch, setValue } = useForm<HUDCustomize>({
-        defaultValues: async () => {
-            return await window.api.getHUDCustomize();
-        },
-    });
+    const { control, handleSubmit, watch, setValue, reset } =
+        useForm<HUDCustomize>({
+            defaultValues: async () => {
+                return await window.api.getHUDCustomize();
+            },
+        });
 
     const blueLogo = watch("blueLogo");
     const redLogo = watch("redLogo");
     const tournamentLogo = watch("tournamentLogo");
     const tournamentRule = watch("tournamentRule");
+
+    const handleReset = (): void => {
+        window.api.getHUDCustomize().then((values) => {
+            reset(values);
+        });
+    };
 
     const onSubmit = (data: HUDCustomize): void => {
         if (saving) return;
@@ -96,18 +103,28 @@ function Customize() {
                     >
                         カスタマイズ
                     </Typography>
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        startIcon={<Save />}
-                        loading={saving}
-                    >
-                        保存
-                    </Button>
+                    <Stack direction="row" spacing={2}>
+                        <Button
+                            variant="outlined"
+                            disabled={saving}
+                            type="button"
+                            onClick={handleReset}
+                        >
+                            リセット
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            startIcon={<Save />}
+                            loading={saving}
+                        >
+                            保存
+                        </Button>
+                    </Stack>
                 </Stack>
                 <Grid container spacing={2} sx={{ p: 3 }}>
                     <Grid size={{ xs: 12, md: 6 }}>
-                        <Card variant="outlined">
+                        <Card>
                             <CardContent sx={{ py: 1 }}>
                                 <Typography variant="h6" component="div">
                                     ブルーチーム
@@ -122,10 +139,14 @@ function Customize() {
                                     name="blueWins"
                                     control={control}
                                     render={({
-                                        field: { onChange, ...field },
+                                        field: { onChange, value, ref, name },
                                     }) => (
                                         <Rating
-                                            {...field}
+                                            // reset 時に正しく再描画されるよう key を付与
+                                            key={"blue-" + tournamentRule}
+                                            name={name}
+                                            ref={ref}
+                                            value={value}
                                             onChange={(_, value) =>
                                                 onChange(value ?? 0)
                                             }
@@ -202,7 +223,7 @@ function Customize() {
                         </Card>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
-                        <Card variant="outlined">
+                        <Card>
                             <CardContent sx={{ py: 1 }}>
                                 <Typography variant="h6" component="div">
                                     レッドチーム
@@ -217,10 +238,13 @@ function Customize() {
                                     name="redWins"
                                     control={control}
                                     render={({
-                                        field: { onChange, ...field },
+                                        field: { onChange, value, ref, name },
                                     }) => (
                                         <Rating
-                                            {...field}
+                                            key={"red-" + tournamentRule}
+                                            name={name}
+                                            ref={ref}
+                                            value={value}
                                             onChange={(_, value) =>
                                                 onChange(value ?? 0)
                                             }
@@ -296,7 +320,7 @@ function Customize() {
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Card variant="outlined" sx={{ mt: 2, width: "100%" }}>
+                    <Card sx={{ mt: 2, width: "100%" }}>
                         <CardContent sx={{ py: 1 }}>
                             <Typography variant="h6" component="div">
                                 全般

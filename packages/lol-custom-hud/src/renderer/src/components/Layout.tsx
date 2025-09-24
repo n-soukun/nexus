@@ -1,4 +1,4 @@
-import { Palette, Settings } from "@mui/icons-material";
+import { Home, Palette, Settings } from "@mui/icons-material";
 import {
     AppBar,
     Box,
@@ -22,6 +22,7 @@ interface MenuItem {
 }
 
 const MenuList: MenuItem[] = [
+    { title: "ホーム", icon: <Home />, link: "/home" },
     { title: "カスタマイズ", icon: <Palette />, link: "/customize" },
     { title: "設定", icon: <Settings />, link: "/settings" },
 ];
@@ -53,7 +54,7 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                         component="div"
                         sx={{ flexGrow: 1 }}
                     >
-                        LoL Custom HUD
+                        neXus
                     </Typography>
                 </Toolbar>
             </AppBar>

@@ -181,14 +181,14 @@ async function runOCR(buffer: Buffer): Promise<string> {
 
 function sanitizeGold(s: string): string {
     if (!s) return "";
-    // 数字、ドット、小文字のk、または大文字のK以外の文字を削除
-    let cleaned = s.replace(/[^0-9.kK]/g, "");
-    // ドットが複数ある場合、最初のドット以外を削除
-    const parts = cleaned.split(".");
-    if (parts.length > 1) cleaned = parts.shift()! + "." + parts.join("");
-    // 大文字のKを小文字のkに変換
-    cleaned = cleaned.replace(/K/g, "k");
-    return cleaned.trim();
+    // 12.3k, 23.4K など、kの違いのみを許容。必ず\d{1,3}\.\d[k,K]の形式ではない場合は空文字を返す
+    const cleaned = s.replace(/[^0-9kK.]/g, "");
+    if (!/^(\d{1,3}(\.\d)?k?)$/.test(cleaned)) return "";
+
+    // kを大文字に統一
+    const upperK = cleaned.replace(/k/g, "K");
+
+    return upperK;
 }
 
 async function imageToGold(image: Image): Promise<string> {

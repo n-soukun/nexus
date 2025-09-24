@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as CustomizeRouteImport } from './routes/customize'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomizeRoute = CustomizeRouteImport.update({
@@ -25,27 +31,31 @@ const CustomizeRoute = CustomizeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/customize': typeof CustomizeRoute
+  '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/customize': typeof CustomizeRoute
+  '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/customize': typeof CustomizeRoute
+  '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/customize' | '/settings'
+  fullPaths: '/customize' | '/home' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/customize' | '/settings'
-  id: '__root__' | '/customize' | '/settings'
+  to: '/customize' | '/home' | '/settings'
+  id: '__root__' | '/customize' | '/home' | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   CustomizeRoute: typeof CustomizeRoute
+  HomeRoute: typeof HomeRoute
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customize': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   CustomizeRoute: CustomizeRoute,
+  HomeRoute: HomeRoute,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport

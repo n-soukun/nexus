@@ -338,6 +338,7 @@ export interface CreatePlayerDataDTO {
     championName: string;
     isBot: boolean;
     isDead: boolean;
+    items: Item[];
     level: number;
     position: string;
     rawChampionName: string;
@@ -355,6 +356,7 @@ export class PlayerData {
     championName: string;
     isBot: boolean;
     isDead: boolean;
+    items: Item[];
     level: number;
     position: string;
     rawChampionName: string;
@@ -373,6 +375,7 @@ export class PlayerData {
         this.championName = data.championName;
         this.isBot = data.isBot;
         this.isDead = data.isDead;
+        this.items = data.items;
         this.level = data.level;
         this.position = data.position;
         this.rawChampionName = data.rawChampionName;
@@ -421,6 +424,7 @@ export interface CreatePlayerDTO {
     championName: string;
     isBot: boolean;
     isDead: boolean;
+    items: Item[];
     level: number;
     position: string;
     rawChampionName: string;
@@ -438,6 +442,7 @@ export class Player {
     championName: string;
     isBot: boolean;
     isDead: boolean;
+    items: Item[];
     level: number;
     position: string;
     rawChampionName: string;
@@ -456,6 +461,7 @@ export class Player {
         this.championName = data.championName;
         this.isBot = data.isBot;
         this.isDead = data.isDead;
+        this.items = data.items;
         this.level = data.level;
         this.position = data.position;
         this.rawChampionName = data.rawChampionName;
@@ -475,6 +481,7 @@ export class Player {
         this.championName = data.championName;
         this.isBot = data.isBot;
         this.isDead = data.isDead;
+        this.items = data.items;
         this.level = data.level;
         this.position = data.position;
         this.rawChampionName = data.rawChampionName;
@@ -613,6 +620,18 @@ export interface Score {
     deaths: number;
     kills: number;
     wardScore: number;
+}
+
+export interface Item {
+    canUse: boolean;
+    consumable: boolean;
+    count: number;
+    displayName: string;
+    itemID: number;
+    price: number;
+    rawDescription: string;
+    rawDisplayName: string;
+    slot: number;
 }
 
 export interface FeatsProgress {

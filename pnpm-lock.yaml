@@ -89,6 +89,9 @@ importers:
       '@fontsource/roboto':
         specifier: ^5.2.8
         version: 5.2.8
+      '@img/sharp-win32-x64':
+        specifier: '*'
+        version: 0.34.4
       '@lol-observer/core':
         specifier: workspace:*
         version: link:../core
@@ -122,12 +125,18 @@ importers:
       node-screenshots:
         specifier: 0.2.1
         version: 0.2.1
+      node-screenshots-win32-x64-msvc:
+        specifier: '*'
+        version: 0.2.1
       react-hook-form:
         specifier: ^7.63.0
         version: 7.63.0(react@19.1.1)
       react-hook-form-mui:
         specifier: ^8.0.0
         version: 8.0.0(@mui/icons-material@7.3.2(@mui/material@7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@mui/material@7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react-hook-form@7.63.0(react@19.1.1))(react@19.1.1)
+      sharp:
+        specifier: 0.34.4
+        version: 0.34.4
     devDependencies:
       '@electron-toolkit/eslint-config-prettier':
         specifier: ^3.0.0
@@ -4964,8 +4973,7 @@ snapshots:
   '@img/sharp-win32-ia32@0.34.4':
     optional: true
 
-  '@img/sharp-win32-x64@0.34.4':
-    optional: true
+  '@img/sharp-win32-x64@0.34.4': {}
 
   '@inquirer/external-editor@1.0.2(@types/node@12.20.42)':
     dependencies:
@@ -7845,8 +7853,7 @@ snapshots:
   node-screenshots-win32-ia32-msvc@0.2.1:
     optional: true
 
-  node-screenshots-win32-x64-msvc@0.2.1:
-    optional: true
+  node-screenshots-win32-x64-msvc@0.2.1: {}
 
   node-screenshots@0.2.1:
     optionalDependencies:

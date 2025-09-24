@@ -7,20 +7,16 @@ import {
     Divider,
     Backdrop,
     CircularProgress,
-    Snackbar,
-    IconButton,
-    InputAdornment,
-    Tooltip,
     TextField,
     Typography,
     ButtonGroup,
 } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { sleep } from "@renderer/utils";
 import { Refresh } from "@mui/icons-material";
+import { ClickableCopyUrlField } from "../components/ClickableCopyUrlField";
 
 export const Route = createFileRoute("/settings")({
     component: Settings,
@@ -31,44 +27,7 @@ function Settings(): React.JSX.Element {
     const [portInput, setPortInput] = useState<string>("3000");
     const [serverStatus, setServerStatus] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
-    const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
-    const [snackbarMessage, setSnackbarMessage] = useState<string>("");
-
-    const copyTextToClipboard = async (text: string): Promise<boolean> => {
-        // Try modern clipboard API first
-        try {
-            await navigator.clipboard.writeText(text);
-            return true;
-        } catch {
-            // Fallback using a hidden textarea
-            try {
-                const textarea = document.createElement("textarea");
-                textarea.value = text;
-                textarea.style.position = "fixed"; // avoid scroll to bottom
-                textarea.style.opacity = "0";
-                document.body.appendChild(textarea);
-                textarea.focus();
-                textarea.select();
-                const ok = document.execCommand("copy");
-                document.body.removeChild(textarea);
-                return ok;
-            } catch {
-                return false;
-            }
-        }
-    };
-
-    const handleCopyClick = async (): Promise<void> => {
-        if (!serverStatus) {
-            setSnackbarMessage("サーバーが起動していません");
-            setSnackbarOpen(true);
-            return;
-        }
-        const text = `http://localhost:${port}`;
-        const ok = await copyTextToClipboard(text);
-        setSnackbarMessage(ok ? "URLをコピーしました" : "コピーに失敗しました");
-        setSnackbarOpen(true);
-    };
+    // URLコピーはコンポーネント側に集約
 
     const handlePortChange = async (): Promise<void> => {
         setLoading(true);
@@ -109,7 +68,7 @@ function Settings(): React.JSX.Element {
             <Typography variant="h6" sx={{ mb: 2 }}>
                 設定
             </Typography>
-            <Card variant="outlined">
+            <Card>
                 <CardContent sx={{ py: 1 }}>
                     <Typography variant="h6" component="div">
                         オーバーレイ
@@ -120,45 +79,10 @@ function Settings(): React.JSX.Element {
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                         ブラウザソースに設定するURL
                     </Typography>
-                    <TextField
-                        fullWidth
-                        value={
-                            serverStatus
-                                ? `http://localhost:${port}`
-                                : "サーバーが起動していません"
-                        }
-                        variant="outlined"
-                        size="small"
-                        InputProps={{
-                            readOnly: true,
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <Tooltip title="コピー">
-                                        <span>
-                                            <IconButton
-                                                size="small"
-                                                aria-label="URLをコピー"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    void handleCopyClick();
-                                                }}
-                                                disabled={
-                                                    loading || !serverStatus
-                                                }
-                                            >
-                                                <ContentCopyIcon fontSize="small" />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                </InputAdornment>
-                            ),
-                        }}
-                        inputProps={{
-                            title: "クリックでコピー",
-                            style: { cursor: "pointer" },
-                        }}
-                        onClick={handleCopyClick}
-                        sx={{ cursor: "pointer" }}
+                    <ClickableCopyUrlField
+                        port={port}
+                        serverRunning={serverStatus}
+                        loading={loading}
                     />
 
                     <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
@@ -233,14 +157,6 @@ function Settings(): React.JSX.Element {
             >
                 <CircularProgress color="inherit" />
             </Backdrop>
-
-            <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={2000}
-                onClose={() => setSnackbarOpen(false)}
-                message={snackbarMessage}
-                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            />
         </Box>
     );
 }

@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: overlay
+appId: work.soukun.nexus
+productName: neXus
 directories:
     buildResources: build
 files:
@@ -11,9 +11,11 @@ files:
     - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
 asarUnpack:
     - resources/**
-    - "node_modules/node-screenshots/**"
+    - "**/node_modules/sharp/**/*"
+    - "**/node_modules/@img/**/*"
+
 win:
-    executableName: overlay
+    executableName: neXus
 nsis:
     artifactName: ${name}-${version}-setup.${ext}
     shortcutName: ${productName}

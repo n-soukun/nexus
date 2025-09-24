@@ -17,7 +17,7 @@ import { createRoot } from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 
 const memoryHistory = createMemoryHistory({
-    initialEntries: ["/customize"], // Pass your initial url
+    initialEntries: ["/home"], // Pass your initial url
 });
 
 const router = createRouter({ routeTree, history: memoryHistory });
