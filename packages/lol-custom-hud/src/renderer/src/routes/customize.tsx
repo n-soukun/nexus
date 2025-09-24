@@ -13,8 +13,9 @@ import {
     Typography,
 } from "@mui/material";
 import { LogoView } from "@renderer/components/LogoView";
+import { useServerStatus } from "@renderer/hooks/useServerStatus";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
     Controller,
     SelectElement,
@@ -29,17 +30,7 @@ export const Route = createFileRoute("/customize")({
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function Customize() {
-    const [port, setPort] = useState<number | null>(null);
-
-    useEffect(() => {
-        window.api.getHttpServerStatus().then((status) => {
-            if (status.running) {
-                setPort(status.port);
-            } else {
-                setPort(null);
-            }
-        });
-    }, []);
+    const { serverStatus } = useServerStatus();
 
     const [saving, setSaving] = useState(false);
     const { control, handleSubmit, watch, setValue, reset } =
@@ -84,7 +75,7 @@ function Customize() {
         <Box>
             <Box>
                 <iframe
-                    src={`http://localhost:${port ?? 3000}`}
+                    src={`http://localhost:${serverStatus?.port ?? 3000}`}
                     style={{
                         width: "100%",
                         height: 136,

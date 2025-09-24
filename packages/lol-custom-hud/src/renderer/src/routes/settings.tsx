@@ -18,16 +18,16 @@ import { useEffect, useState } from "react";
 import { sleep } from "@renderer/utils";
 import { Refresh } from "@mui/icons-material";
 import { ClickableCopyUrlField } from "../components/ClickableCopyUrlField";
+import { useServerStatus } from "@renderer/hooks/useServerStatus";
 
 export const Route = createFileRoute("/settings")({
     component: Settings,
 });
 
 function Settings(): React.JSX.Element {
-    const [port, setPort] = useState<number>(3000);
+    const { serverStatus, syncServerStatus } = useServerStatus();
     const [portInput, setPortInput] = useState<string>("3000");
-    const [serverStatus, setServerStatus] = useState<boolean>(false);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
     // URLコピーはコンポーネント側に集約
 
     const handlePortChange = async (): Promise<void> => {
@@ -37,33 +37,23 @@ function Settings(): React.JSX.Element {
             return;
         }
         await window.api.restartHttpServer(port);
-        const status = await window.api.getHttpServerStatus();
-        setServerStatus(status.running);
-        setPort(status.port);
+        await syncServerStatus();
         await sleep(1000); //連打防止
         setLoading(false);
     };
 
     const handleReloadClick = async (): Promise<void> => {
         setLoading(true);
-        const result = await window.api.getHttpServerStatus();
-        setServerStatus(result.running);
-        setPort(result.port);
+        await syncServerStatus();
         await sleep(1000); //連打防止
         setLoading(false);
     };
 
     useEffect(() => {
-        window.api.getHttpServerStatus().then((status) => {
-            setServerStatus(status.running);
-            setPort(status.port);
-            setLoading(false);
-        });
-    }, []);
-
-    useEffect(() => {
-        setPortInput(port.toString());
-    }, [port]);
+        if (serverStatus?.port) {
+            setPortInput(serverStatus.port.toString());
+        }
+    }, [serverStatus?.port]);
     return (
         <Box sx={{ p: 3, position: "relative" }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
@@ -84,8 +74,8 @@ function Settings(): React.JSX.Element {
                         ブラウザソースに設定するURL
                     </Typography>
                     <ClickableCopyUrlField
-                        port={port}
-                        serverRunning={serverStatus}
+                        port={serverStatus?.port ?? 3000}
+                        serverRunning={!!serverStatus?.running}
                         loading={loading}
                     />
                 </CardContent>
@@ -110,7 +100,7 @@ function Settings(): React.JSX.Element {
                             loading
                                 ? "読み込み中..."
                                 : serverStatus
-                                  ? `起動中 (ポート: ${port})`
+                                  ? `起動中 (ポート: ${serverStatus.port})`
                                   : "停止中"
                         }
                         color={serverStatus ? "success" : "error"}

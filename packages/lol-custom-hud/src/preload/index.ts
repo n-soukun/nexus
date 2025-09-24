@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
-import { HUDCustomize } from "../types";
+import { HTTPServerStatus, HUDCustomize } from "../types";
 
 // Custom APIs for renderer
 const api = {
@@ -26,6 +26,25 @@ const api = {
     restartHttpServer: (port: number) =>
         ipcRenderer.invoke("restart-http-server", port),
     getHttpServerStatus: () => ipcRenderer.invoke("get-http-server-status"),
+    onServerStatusChange: (
+        callback: (
+            event: Electron.IpcRendererEvent,
+            status: HTTPServerStatus,
+        ) => void,
+    ) => {
+        ipcRenderer.on("server-status-changed", callback);
+        return () => {
+            ipcRenderer.removeListener("server-status-changed", callback);
+        };
+    },
+    offServerStatusChange: (
+        callback: (
+            event: Electron.IpcRendererEvent,
+            status: HTTPServerStatus,
+        ) => void,
+    ) => {
+        ipcRenderer.removeListener("server-status-changed", callback);
+    },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

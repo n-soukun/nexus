@@ -1,5 +1,5 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
-import { HUDCustomize } from "src/types";
+import { HTTPServerStatus, HUDCustomize } from "src/types";
 
 declare global {
     interface Window {
@@ -22,10 +22,19 @@ declare global {
             setHUDCustomize: (data: HUDCustomize) => Promise<void>;
             openImageFileDialog: () => Promise<string | null>;
             restartHttpServer: (port: number) => Promise<boolean>;
-            getHttpServerStatus: () => Promise<{
-                running: boolean;
-                port: number;
-            }>;
+            getHttpServerStatus: () => Promise<HTTPServerStatus>;
+            onServerStatusChange: (
+                callback: (
+                    event: Electron.IpcRendererEvent,
+                    status: HTTPServerStatus,
+                ) => void,
+            ) => () => void;
+            offServerStatusChange: (
+                callback: (
+                    event: Electron.IpcRendererEvent,
+                    status: HTTPServerStatus,
+                ) => void,
+            ) => void;
         };
     }
 }

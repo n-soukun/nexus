@@ -7,6 +7,28 @@ import wsRouter from "./websocket";
 import { Server } from "http";
 import { HTTPServerStatus } from "../types";
 
+type ServerStatusChangeCallback = (status: HTTPServerStatus) => void;
+
+const serverStatusChangeCallbacks = new Set<ServerStatusChangeCallback>();
+
+export function onServerStatusChange(
+    callback: ServerStatusChangeCallback,
+): void {
+    serverStatusChangeCallbacks.add(callback);
+}
+
+export function offServerStatusChange(
+    callback: ServerStatusChangeCallback,
+): void {
+    serverStatusChangeCallbacks.delete(callback);
+}
+
+export function emitServerStatusChange(status: HTTPServerStatus): void {
+    serverStatusChangeCallbacks.forEach((callback) => {
+        callback(status);
+    });
+}
+
 const isDev = !app.isPackaged;
 
 let server: Server | null = null;
@@ -47,10 +69,13 @@ export function startServer(
         server = app.listen(port, () => {
             console.log(`Express server running at http://localhost:${port}`);
             resolve(app);
+            emitServerStatusChange({ running: true, port: port });
         });
 
         server.on("error", (err) => {
             reject(err);
+            server = null;
+            emitServerStatusChange({ running: false, port: null });
         });
     });
 }
@@ -65,6 +90,7 @@ export function stopServer(): Promise<void> {
                     resolve();
                     server = null;
                 }
+                emitServerStatusChange({ running: false, port: null });
             });
         } else {
             resolve();
@@ -78,7 +104,7 @@ export function getServerStatus(): HTTPServerStatus {
         if (address && typeof address === "object") {
             return { running: true, port: address.port };
         }
-        return { running: true, port: null };
+        throw new Error("サーバーのアドレス情報が取得できません");
     }
     return { running: false, port: null };
 }

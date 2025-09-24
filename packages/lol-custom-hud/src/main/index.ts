@@ -4,9 +4,20 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { base64 } from "base64-img";
 import type { WebSocket as WsWebSocket } from "ws";
 
-import type { GameStats, GameTime, HUDCustomize, WindowState } from "../types";
+import type {
+    GameStats,
+    GameTime,
+    HTTPServerStatus,
+    HUDCustomize,
+    WindowState,
+} from "../types";
 import icon from "../../resources/icon.png?asset";
-import { getServerStatus, startServer, stopServer } from "./server";
+import {
+    getServerStatus,
+    onServerStatusChange,
+    startServer,
+    stopServer,
+} from "./server";
 import {
     ReceiveMessageNames,
     registerReceiveMessageHandler,
@@ -107,16 +118,6 @@ function adjustWindowStateToDisplays(windowState: WindowState): WindowState {
 }
 
 function createWindow(): void {
-    const httpServerConfig = getHTTPServerConfig();
-
-    startServer(httpServerConfig.port)
-        .then(() => {
-            console.log("Server started");
-        })
-        .catch((err) => {
-            console.error("Failed to start server:", err);
-        });
-
     const beforeWindowState = adjustWindowStateToDisplays(getWindowState());
 
     // Create the browser window.1
@@ -155,6 +156,25 @@ function createWindow(): void {
         shell.openExternal(details.url);
         return { action: "deny" };
     });
+
+    // HTTPサーバーの開始
+
+    const httpServerConfig = getHTTPServerConfig();
+
+    // 状態変更イベントのハンドラ登録
+    const httpServerStatusHandler = (status: HTTPServerStatus): void => {
+        mainWindow.webContents.send("server-status-changed", status);
+    };
+    onServerStatusChange(httpServerStatusHandler);
+
+    // 初回サーバー起動
+    startServer(httpServerConfig.port)
+        .then(() => {
+            console.log("Server started");
+        })
+        .catch((err) => {
+            console.error("Failed to start server:", err);
+        });
 
     // WebSocketメッセージハンドラ登録
     registerReceiveMessageHandler(

@@ -10,44 +10,43 @@ import type { HTTPServerStatus } from "../../../types";
 
 export interface ServerStatusContextValue {
     readonly serverStatus: HTTPServerStatus | null;
-    syncServerStatus: () => void;
+    syncServerStatus: () => Promise<void>;
 }
 
 const _ServerStatusContext = createContext<ServerStatusContextValue>(null!);
 
-// eslint-disable-next-line react/prop-types
 export const ServerStatusContext: React.FC<PropsWithChildren> = ({
     // eslint-disable-next-line react/prop-types
     children,
 }) => {
-    const [_serverStatus, setServerStatus] = useState<HTTPServerStatus | null>(
+    const [serverStatus, setServerStatus] = useState<HTTPServerStatus | null>(
         null,
     );
 
     useEffect(() => {
-        window.api.getHttpServerStatus().then((status) => {
+        const handler = (_event: unknown, status: HTTPServerStatus): void => {
             setServerStatus(status);
-        });
+        };
+
+        window.api.onServerStatusChange(handler);
+        syncServerStatus(); // 初回同期
+        return () => {
+            window.api.offServerStatusChange(handler);
+        };
     }, []);
 
-    const syncServerStatus = (): void => {
-        window.api.getHttpServerStatus().then((status) => {
-            setServerStatus(status);
-        });
+    const syncServerStatus = async (): Promise<void> => {
+        const status = await window.api.getHttpServerStatus();
+        setServerStatus(status);
     };
 
-    const serverStatus = {
-        get serverStatus() {
-            window.api.getHttpServerStatus().then((status) => {
-                setServerStatus(status);
-            });
-            return _serverStatus;
-        },
+    const value = {
+        serverStatus,
         syncServerStatus,
     };
 
     return (
-        <_ServerStatusContext.Provider value={serverStatus}>
+        <_ServerStatusContext.Provider value={value}>
             {children}
         </_ServerStatusContext.Provider>
     );
