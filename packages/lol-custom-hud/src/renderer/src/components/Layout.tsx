@@ -1,19 +1,38 @@
-import { Home, Palette, Settings } from "@mui/icons-material";
+import {
+    Home,
+    Palette,
+    Settings,
+    SportsEsports,
+    VideogameAsset,
+    VideogameAssetOff,
+    WifiTethering,
+    WifiTetheringError,
+    WifiTetheringOff,
+} from "@mui/icons-material";
 import {
     AppBar,
     Box,
     BoxProps,
+    ButtonBase,
+    Divider,
     Drawer,
+    Grid,
     List,
     ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
+    Snackbar,
     Toolbar,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
 import { Logo } from "./Logo";
+import { useServerStatus } from "@renderer/hooks/useServerStatus";
+import { useGameStats } from "@renderer/hooks/useGameStats";
+import { useCallback, useState } from "react";
+import { textToClipboard } from "@renderer/utils";
 
 interface MenuItem {
     title: string;
@@ -23,7 +42,11 @@ interface MenuItem {
 
 const MenuList: MenuItem[] = [
     { title: "ホーム", icon: <Home />, link: "/home" },
+    { title: "ゲーム情報", icon: <SportsEsports />, link: "/gamestats" },
     { title: "カスタマイズ", icon: <Palette />, link: "/customize" },
+];
+
+const BottomMenuList: MenuItem[] = [
     { title: "設定", icon: <Settings />, link: "/settings" },
 ];
 
@@ -32,6 +55,29 @@ const drawerWidth = 240;
 export interface LayoutProps extends BoxProps {}
 
 export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
+    const { serverStatus } = useServerStatus();
+    const { gameStats } = useGameStats();
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+
+    const showMessage = useCallback((msg: string) => {
+        setSnackbarMessage(msg);
+        setSnackbarOpen(true);
+    }, []);
+
+    const copyTextToClipboard = useCallback(textToClipboard, []);
+
+    const handleCopy = useCallback(async () => {
+        if (!serverStatus?.running) {
+            showMessage("サーバーが起動していません");
+            return;
+        }
+        const url = `http://localhost:${serverStatus.port}`;
+        const ok = await copyTextToClipboard(url);
+        showMessage(ok ? "URLをコピーしました" : "コピーに失敗しました");
+    }, [serverStatus, copyTextToClipboard, showMessage]);
+
     const navigate = useNavigate();
     const handleMenuClick = (link: string): void => {
         navigate({ to: link });
@@ -70,7 +116,14 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                 }}
             >
                 <Toolbar variant="dense" />
-                <Box sx={{ overflow: "auto" }}>
+                <Box
+                    sx={{
+                        overflow: "auto",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                    }}
+                >
                     <List>
                         {MenuList.map((item, index) => (
                             <ListItem key={index} disablePadding>
@@ -83,7 +136,86 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                             </ListItem>
                         ))}
                     </List>
+                    <Box sx={{ flexGrow: 1 }} />
+                    <List>
+                        {BottomMenuList.map((item, index) => (
+                            <ListItem key={index} disablePadding>
+                                <ListItemButton
+                                    onClick={() => handleMenuClick(item.link)}
+                                >
+                                    <ListItemIcon>{item.icon}</ListItemIcon>
+                                    <ListItemText primary={item.title} />
+                                </ListItemButton>
+                            </ListItem>
+                        ))}
+                    </List>
                 </Box>
+                <Divider />
+                <Grid container>
+                    <Grid
+                        size={6}
+                        sx={{ px: 1, py: 0.5 }}
+                        display={"flex"}
+                        alignItems={"center"}
+                        justifyContent={"center"}
+                        borderRight={1}
+                        borderColor={"divider"}
+                    >
+                        {gameStats ? <VideogameAsset /> : <VideogameAssetOff />}
+                        <Typography
+                            sx={{ ml: 1, userSelect: "none" }}
+                            fontSize={12}
+                        >
+                            {gameStats ? "Live" : "Offline"}
+                        </Typography>
+                    </Grid>
+                    <Grid size={6}>
+                        <Tooltip
+                            title={
+                                serverStatus
+                                    ? serverStatus.running
+                                        ? `サーバーは http://localhost:${serverStatus?.port} で起動しています`
+                                        : "サーバーは停止中です"
+                                    : "サーバーステータスの取得に失敗しました"
+                            }
+                        >
+                            <ButtonBase
+                                sx={{
+                                    px: 1,
+                                    py: 0.5,
+                                    width: "100%",
+                                    display: "flex",
+                                    alignContent: "center",
+                                    transition: (theme) =>
+                                        theme.transitions.create(
+                                            "background-color",
+                                        ),
+                                    "&:hover": {
+                                        backgroundColor: "action.hover",
+                                    },
+                                }}
+                                onClick={() => void handleCopy()}
+                            >
+                                {serverStatus ? (
+                                    serverStatus.running ? (
+                                        <WifiTethering />
+                                    ) : (
+                                        <WifiTetheringOff />
+                                    )
+                                ) : (
+                                    <WifiTetheringError />
+                                )}
+                                <Typography sx={{ ml: 1 }} fontSize={12}>
+                                    {serverStatus
+                                        ? serverStatus.running
+                                            ? serverStatus.port
+                                            : "Stopped"
+                                        : "Error"}
+                                </Typography>
+                            </ButtonBase>
+                        </Tooltip>
+                    </Grid>
+                </Grid>
             </Drawer>
             <Box
                 component="main"
@@ -99,6 +231,13 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                     {children}
                 </Box>
             </Box>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={2000}
+                onClose={() => setSnackbarOpen(false)}
+                message={snackbarMessage}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            />
         </Box>
     );
 }

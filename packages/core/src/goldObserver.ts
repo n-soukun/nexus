@@ -183,7 +183,7 @@ function sanitizeGold(s: string): string {
     if (!s) return "";
     // 12.3k, 23.4K など、kの違いのみを許容。必ず\d{1,3}\.\d[k,K]の形式ではない場合は空文字を返す
     const cleaned = s.replace(/[^0-9kK.]/g, "");
-    if (!/^(\d{1,3}(\.\d)?k?)$/.test(cleaned)) return "";
+    if (!/^(\d{1,3}\.\d[kK])$/.test(cleaned)) return "";
 
     // kを大文字に統一
     const upperK = cleaned.replace(/k/g, "K");

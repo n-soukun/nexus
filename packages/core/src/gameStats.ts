@@ -874,14 +874,39 @@ export class Team {
 
     private handlePlayersUpdate() {
         this.players = this.playerCollection.filterByTeam(this);
+
+        const itemsPriceSum = this.players.reduce((sum, player) => {
+            const playerItemsPrice = player.items.reduce(
+                (itemSum, item) => itemSum + item.price * item.count,
+                0,
+            );
+            return sum + playerItemsPrice;
+        }, 0);
+
+        const newGolds = `${Math.floor(itemsPriceSum / 100) / 10}K`;
+
+        if (
+            this._golds === "" ||
+            this.compareGolds(this._golds, newGolds) < 0
+        ) {
+            this._golds = newGolds;
+            this.emitUpdate();
+        }
     }
 
     private handleGoldChange(blueGold: string, redGold: string) {
         const next = this.name === TeamNames.ORDER ? blueGold : redGold;
-        if (this._golds !== next) {
+        if (this._golds === "" || this.compareGolds(this._golds, next) < 0) {
             this._golds = next;
             this.emitUpdate();
         }
+    }
+
+    private compareGolds(a: string, b: string): number {
+        // 最後のkを削除して数値に変換
+        const numA = parseFloat(a.replace("k", ""));
+        const numB = parseFloat(b.replace("k", ""));
+        return numA - numB;
     }
 }
 

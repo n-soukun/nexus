@@ -43,6 +43,11 @@ export interface WindowState {
     height: number;
 }
 
+export interface HTTPServerStatus {
+    running: boolean;
+    port: number;
+}
+
 export interface HTTPServerConfig {
     port: number;
 }

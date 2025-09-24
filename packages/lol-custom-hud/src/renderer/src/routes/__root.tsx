@@ -1,6 +1,7 @@
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import { Layout } from "@renderer/components/Layout";
 import { GameStatsContext } from "@renderer/hooks/useGameStats";
+import { ServerStatusContext } from "@renderer/hooks/useServerStatus";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
@@ -27,12 +28,14 @@ const RootLayout = () => (
     <>
         <ThemeProvider theme={theme}>
             <GameStatsContext>
-                <CssBaseline />
-                <Layout>
-                    <Outlet />
-                </Layout>
+                <ServerStatusContext>
+                    <CssBaseline />
+                    <Layout>
+                        <Outlet />
+                    </Layout>
+                </ServerStatusContext>
             </GameStatsContext>
-            <TanStackRouterDevtools />
+            <TanStackRouterDevtools position="bottom-right" />
         </ThemeProvider>
     </>
 );

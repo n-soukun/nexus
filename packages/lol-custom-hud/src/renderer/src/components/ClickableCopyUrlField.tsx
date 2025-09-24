@@ -7,6 +7,7 @@ import {
     Snackbar,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { textToClipboard } from "@renderer/utils";
 
 interface ClickableCopyUrlFieldProps {
     port: number;
@@ -40,30 +41,7 @@ export function ClickableCopyUrlField({
         [onFeedback],
     );
 
-    const copyTextToClipboard = useCallback(
-        async (text: string): Promise<boolean> => {
-            try {
-                await navigator.clipboard.writeText(text);
-                return true;
-            } catch {
-                try {
-                    const textarea = document.createElement("textarea");
-                    textarea.value = text;
-                    textarea.style.position = "fixed";
-                    textarea.style.opacity = "0";
-                    document.body.appendChild(textarea);
-                    textarea.focus();
-                    textarea.select();
-                    const ok = document.execCommand("copy");
-                    document.body.removeChild(textarea);
-                    return ok;
-                } catch {
-                    return false;
-                }
-            }
-        },
-        [],
-    );
+    const copyTextToClipboard = useCallback(textToClipboard, []);
 
     const handleCopy = useCallback(async () => {
         if (!serverRunning) {

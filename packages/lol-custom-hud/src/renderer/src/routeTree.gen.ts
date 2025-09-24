@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as GamestatsRouteImport } from './routes/gamestats'
 import { Route as CustomizeRouteImport } from './routes/customize'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -23,6 +24,11 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamestatsRoute = GamestatsRouteImport.update({
+  id: '/gamestats',
+  path: '/gamestats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CustomizeRoute = CustomizeRouteImport.update({
   id: '/customize',
   path: '/customize',
@@ -31,30 +37,34 @@ const CustomizeRoute = CustomizeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/customize': typeof CustomizeRoute
+  '/gamestats': typeof GamestatsRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/customize': typeof CustomizeRoute
+  '/gamestats': typeof GamestatsRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/customize': typeof CustomizeRoute
+  '/gamestats': typeof GamestatsRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/customize' | '/home' | '/settings'
+  fullPaths: '/customize' | '/gamestats' | '/home' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/customize' | '/home' | '/settings'
-  id: '__root__' | '/customize' | '/home' | '/settings'
+  to: '/customize' | '/gamestats' | '/home' | '/settings'
+  id: '__root__' | '/customize' | '/gamestats' | '/home' | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   CustomizeRoute: typeof CustomizeRoute
+  GamestatsRoute: typeof GamestatsRoute
   HomeRoute: typeof HomeRoute
   SettingsRoute: typeof SettingsRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gamestats': {
+      id: '/gamestats'
+      path: '/gamestats'
+      fullPath: '/gamestats'
+      preLoaderRoute: typeof GamestatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/customize': {
       id: '/customize'
       path: '/customize'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   CustomizeRoute: CustomizeRoute,
+  GamestatsRoute: GamestatsRoute,
   HomeRoute: HomeRoute,
   SettingsRoute: SettingsRoute,
 }

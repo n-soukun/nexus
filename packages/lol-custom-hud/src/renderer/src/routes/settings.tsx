@@ -10,6 +10,7 @@ import {
     TextField,
     Typography,
     ButtonGroup,
+    CardHeader,
 } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -69,11 +70,14 @@ function Settings(): React.JSX.Element {
                 設定
             </Typography>
             <Card>
-                <CardContent sx={{ py: 1 }}>
-                    <Typography variant="h6" component="div">
-                        オーバーレイ
-                    </Typography>
-                </CardContent>
+                <CardHeader
+                    slotProps={{ root: { sx: { py: 1 } } }}
+                    title={
+                        <Typography variant="h6" component="div">
+                            オーバーレイ
+                        </Typography>
+                    }
+                />
                 <Divider />
                 <CardContent>
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
@@ -84,9 +88,22 @@ function Settings(): React.JSX.Element {
                         serverRunning={serverStatus}
                         loading={loading}
                     />
+                </CardContent>
+            </Card>
 
-                    <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                        httpサーバー
+            <Card sx={{ mt: 3 }}>
+                <CardHeader
+                    slotProps={{ root: { sx: { py: 1 } } }}
+                    title={
+                        <Typography variant="h6" component="div">
+                            HTTPサーバー
+                        </Typography>
+                    }
+                />
+                <Divider />
+                <CardContent>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        サーバーの状態
                     </Typography>
                     <Chip
                         label={

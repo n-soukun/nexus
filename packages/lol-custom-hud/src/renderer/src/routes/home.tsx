@@ -10,15 +10,15 @@ import {
 } from "@mui/material";
 import ClickableCopyUrlField from "@renderer/components/ClickableCopyUrlField";
 import { Logo } from "@renderer/components/Logo";
+import { useServerStatus } from "@renderer/hooks/useServerStatus";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/home")({
     component: HomeComponent,
 });
 
 function HomeComponent(): React.JSX.Element {
-    const [port, setPort] = useState<number | null>(null);
+    const { serverStatus } = useServerStatus();
     const navigate = useNavigate({ from: "/home" });
 
     const handleClickCustomize = (): void => {
@@ -28,16 +28,6 @@ function HomeComponent(): React.JSX.Element {
     const handleClickSettings = (): void => {
         navigate({ to: "/settings" });
     };
-
-    useEffect(() => {
-        window.api.getHttpServerStatus().then((status) => {
-            if (status.running) {
-                setPort(status.port);
-            } else {
-                setPort(null);
-            }
-        });
-    }, []);
 
     return (
         <Box>
@@ -59,7 +49,10 @@ function HomeComponent(): React.JSX.Element {
                     <Typography
                         variant="h2"
                         component="div"
-                        sx={{ flexGrow: 1 }}
+                        sx={{
+                            flexGrow: 1,
+                            userSelect: "none",
+                        }}
                     >
                         neXus
                     </Typography>
@@ -101,13 +94,13 @@ function HomeComponent(): React.JSX.Element {
                         }
                     />
                     <CardContent>
-                        {port ? (
+                        {serverStatus?.port ? (
                             <>
                                 <Typography variant="body1" sx={{ mb: 1 }}>
                                     OBSなどの配信ソフトをお使いの場合は、このURLをブラウザソースに設定してください。
                                 </Typography>
                                 <ClickableCopyUrlField
-                                    port={port}
+                                    port={serverStatus.port}
                                     serverRunning={true}
                                     loading={false}
                                 />
