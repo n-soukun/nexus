@@ -666,6 +666,7 @@ export class Team {
     };
     players: Player[];
     game: Game;
+    private _goldsRaw: string = "---";
     private _golds: string = "---";
     private events: EventCollection;
     private playerCollection: PlayerCollection;
@@ -701,6 +702,10 @@ export class Team {
             GoldObserverEvents.GoldChange,
             this.handleGoldChange.bind(this),
         );
+        this.goldObserver.on(
+            GoldObserverEvents.Update,
+            this.handleGoldRawUpdate.bind(this),
+        );
 
         this.handleEventsUpdate(this.events);
         this.handlePlayersUpdate();
@@ -712,6 +717,10 @@ export class Team {
 
     get golds() {
         return this._golds;
+    }
+
+    get goldsRaw() {
+        return this._goldsRaw;
     }
 
     on<T extends TeamEvents>(event: T, listener: TeamEventsListener[T]) {
@@ -902,11 +911,20 @@ export class Team {
         }
     }
 
+    private handleGoldRawUpdate(blueGold: string, redGold: string) {
+        const next = this.name === TeamNames.ORDER ? blueGold : redGold;
+        if (this._goldsRaw !== next) {
+            this._goldsRaw = next;
+            this.emitUpdate();
+        }
+    }
+
     private compareGolds(a: string, b: string): number {
         // 最後のkを削除して数値に変換
-        const numA = parseFloat(a.replace("k", ""));
-        const numB = parseFloat(b.replace("k", ""));
-        return numA - numB;
+        const numA = parseFloat(a.replace("K", ""));
+        const numB = parseFloat(b.replace("K", ""));
+        const result = numA - numB;
+        return result;
     }
 }
 
@@ -996,9 +1014,16 @@ export class Game {
                 goldObserver.start();
                 return new Game(gameStats, players, events, goldObserver);
             } catch (error) {
-                throw new Error(
-                    "Failed to connect to the League of Legends client API.",
-                );
+                if (error instanceof Error) {
+                    throw new Error(
+                        "Failed to connect to the League of Legends client API." +
+                            error.message,
+                    );
+                } else {
+                    throw new Error(
+                        "Failed to connect to the League of Legends client API.",
+                    );
+                }
             }
         });
     }

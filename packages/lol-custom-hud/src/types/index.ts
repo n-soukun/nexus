@@ -8,9 +8,12 @@ export interface TeamStats {
     kills: number;
     turrets: number;
     golds: string;
-    killHordes: number;
+    goldsRaw: string;
     dragons: string[];
     killAtakhans: number;
+    killHordes: number;
+    killHeralds: number;
+    killBarons: number;
     featsProgress: FeatsProgress;
 }
 
@@ -45,7 +48,7 @@ export interface WindowState {
 
 export interface HTTPServerStatus {
     running: boolean;
-    port: number;
+    port: number | null;
 }
 
 export interface HTTPServerConfig {

@@ -5,6 +5,7 @@ import {
     Card,
     CardContent,
     CardHeader,
+    Divider,
     Stack,
     Typography,
 } from "@mui/material";
@@ -59,6 +60,9 @@ function HomeComponent(): React.JSX.Element {
                 </Box>
             </Box>
             <Stack direction="column" spacing={2} sx={{ p: 2 }}>
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                    neXusへようこそ
+                </Typography>
                 <Card>
                     <CardHeader
                         title={
@@ -73,6 +77,7 @@ function HomeComponent(): React.JSX.Element {
                             </Button>
                         }
                     />
+                    <Divider />
                     <CardContent>
                         <Typography variant="body1">
                             チーム名・ブランドロゴなどを変更できます
@@ -93,6 +98,7 @@ function HomeComponent(): React.JSX.Element {
                             </Button>
                         }
                     />
+                    <Divider />
                     <CardContent>
                         {serverStatus?.port ? (
                             <>

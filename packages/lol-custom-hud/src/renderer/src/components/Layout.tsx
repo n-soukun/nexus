@@ -82,6 +82,11 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
     const handleMenuClick = (link: string): void => {
         navigate({ to: link });
     };
+
+    const handleClickGameStatus = (): void => {
+        navigate({ to: "/gamestats" });
+    };
+
     return (
         <Box sx={{ display: "flex", flexGrow: 1 }} width={"100%"}>
             <AppBar
@@ -152,22 +157,44 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                 </Box>
                 <Divider />
                 <Grid container>
-                    <Grid
-                        size={6}
-                        sx={{ px: 1, py: 0.5 }}
-                        display={"flex"}
-                        alignItems={"center"}
-                        justifyContent={"center"}
-                        borderRight={1}
-                        borderColor={"divider"}
-                    >
-                        {gameStats ? <VideogameAsset /> : <VideogameAssetOff />}
-                        <Typography
-                            sx={{ ml: 1, userSelect: "none" }}
-                            fontSize={12}
+                    <Grid size={6} borderRight={1} borderColor={"divider"}>
+                        <Tooltip
+                            title={
+                                gameStats
+                                    ? "ゲームは進行中です"
+                                    : "ゲームクライアントが起動していません"
+                            }
                         >
-                            {gameStats ? "Live" : "Offline"}
-                        </Typography>
+                            <ButtonBase
+                                sx={{
+                                    px: 1,
+                                    py: 0.5,
+                                    width: "100%",
+                                    display: "flex",
+                                    alignContent: "center",
+                                    transition: (theme) =>
+                                        theme.transitions.create(
+                                            "background-color",
+                                        ),
+                                    "&:hover": {
+                                        backgroundColor: "action.hover",
+                                    },
+                                }}
+                                onClick={() => handleClickGameStatus()}
+                            >
+                                {gameStats ? (
+                                    <VideogameAsset />
+                                ) : (
+                                    <VideogameAssetOff />
+                                )}
+                                <Typography
+                                    sx={{ ml: 1, userSelect: "none" }}
+                                    fontSize={12}
+                                >
+                                    {gameStats ? "Live" : "Offline"}
+                                </Typography>
+                            </ButtonBase>
+                        </Tooltip>
                     </Grid>
                     <Grid size={6}>
                         <Tooltip

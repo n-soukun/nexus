@@ -14,6 +14,7 @@ export interface GoldObserverOptions {
 export enum GoldObserverEvents {
     Connected = "connected",
     GoldChange = "goldChange",
+    Update = "update",
     Disconnected = "disconnected",
 }
 
@@ -22,6 +23,10 @@ export type GoldObserverEventsListener = {
     [GoldObserverEvents.GoldChange]: (
         blueGold: string,
         redGold: string,
+    ) => void;
+    [GoldObserverEvents.Update]: (
+        blueGoldRaw: string,
+        redGoldRaw: string,
     ) => void;
     [GoldObserverEvents.Disconnected]: () => void;
 };
@@ -126,19 +131,20 @@ export class GoldObserver {
                 imageToGold(chaosGoldTextImage),
             ]);
 
-            const checkGoldFormat = (gold: string) => {
-                // 12.3k, 23.4K などの形式を許容
-                return /^(\d{1,3}(\.\d)?k?)$/.test(gold);
-            };
+            this.eventEmitter.emit(
+                GoldObserverEvents.Update,
+                orderGold,
+                chaosGold,
+            );
 
             let updated = false;
 
-            if (checkGoldFormat(orderGold) && this._blueGold !== orderGold) {
+            if (orderGold && this._blueGold !== orderGold) {
                 this._blueGold = orderGold;
                 updated = true;
             }
 
-            if (checkGoldFormat(chaosGold) && this._redGold !== chaosGold) {
+            if (chaosGold && this._redGold !== chaosGold) {
                 this._redGold = chaosGold;
                 updated = true;
             }

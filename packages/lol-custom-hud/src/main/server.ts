@@ -5,6 +5,7 @@ import path from "path";
 
 import wsRouter from "./websocket";
 import { Server } from "http";
+import { HTTPServerStatus } from "../types";
 
 const isDev = !app.isPackaged;
 
@@ -71,7 +72,7 @@ export function stopServer(): Promise<void> {
     });
 }
 
-export function getServerStatus(): { running: boolean; port: number | null } {
+export function getServerStatus(): HTTPServerStatus {
     if (server && server.listening) {
         const address = server.address();
         if (address && typeof address === "object") {
