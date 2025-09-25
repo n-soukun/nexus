@@ -1,10 +1,17 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
-import { HTTPServerStatus, HUDCustomize, ThemeManifestV1 } from "src/types";
+import {
+    HTTPServerStatus,
+    HUDCustomize,
+    ThemeManifestV1,
+    MainProcessLogHandler,
+} from "src/types";
 
 declare global {
     interface Window {
         electron: ElectronAPI;
         api: {
+            onMainProcessLog: (callback: MainProcessLogHandler) => void;
+            offMainProcessLog: (callback: MainProcessLogHandler) => void;
             getGameState: () => Promise<unknown>;
             onGameStateChange: (
                 callback: (

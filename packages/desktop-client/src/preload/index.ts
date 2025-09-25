@@ -1,9 +1,19 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
-import { HTTPServerStatus, HUDCustomize } from "../types";
+import {
+    HTTPServerStatus,
+    HUDCustomize,
+    MainProcessLogHandler,
+} from "../types";
 
 // Custom APIs for renderer
 const api = {
+    onMainProcessLog: (callback: MainProcessLogHandler) => {
+        ipcRenderer.on("main-process-log", callback);
+    },
+    offMainProcessLog: (callback: MainProcessLogHandler) => {
+        ipcRenderer.removeListener("main-process-log", callback);
+    },
     getGameState: () => ipcRenderer.invoke("get-game-state"),
     onGameStateChange: (
         callback: (event: Electron.IpcRendererEvent, state: unknown) => void,

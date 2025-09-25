@@ -87,3 +87,8 @@ export type AddThemeResult =
           isVersionUp: boolean;
       }
     | { result: false; error: string };
+
+export type MainProcessLogHandler = (
+    event: Electron.IpcRendererEvent,
+    log: { error: boolean; message: string },
+) => void;

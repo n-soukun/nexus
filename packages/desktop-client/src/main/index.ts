@@ -55,6 +55,15 @@ import {
     deleteThemeById,
     getThemes,
 } from "./theme";
+import { Logger } from "./logger";
+
+export const logger = new Logger();
+
+// エラーハンドリング
+process.on("uncaughtException", (error) => {
+    logger.error(`Uncaught Exception: ${error.message}`);
+    console.error("Uncaught Exception:", error);
+});
 
 // システムトレイ用
 let tray: Tray;
@@ -175,6 +184,11 @@ function createWindow(): void {
     if (is.dev) {
         mainWindow.webContents.openDevTools();
     }
+
+    // ログイベントハンドラ登録
+    logger.on("log", (log) => {
+        mainWindow.webContents.send("main-process-log", log);
+    });
 
     mainWindow.webContents.once("did-finish-load", () => {
         mainWindow.show();
@@ -337,6 +351,7 @@ app.whenReady().then(() => {
     });
 
     // IPC Handlers
+
     ipcMain.on("ping", () => console.log("pong"));
     ipcMain.handle("get-game-state", () => {
         return getGameStats();
