@@ -1,34 +1,20 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
-import {
-    HTTPServerStatus,
-    HUDCustomize,
-    MainProcessLogHandler,
-} from "../types";
+import { HUDCustomize } from "../types";
+import { IPCEvents, IPCEventsHandler } from "../types/ipcEvents";
 
 // Custom APIs for renderer
 const api = {
-    onMainProcessLog: (callback: MainProcessLogHandler) => {
-        ipcRenderer.on("main-process-log", callback);
+    ipcEvent: {
+        on: <T extends IPCEvents>(name: T, callback: IPCEventsHandler<T>) => {
+            ipcRenderer.on(name, callback);
+        },
+        off: <T extends IPCEvents>(name: T, callback: IPCEventsHandler<T>) => {
+            ipcRenderer.removeListener(name, callback);
+        },
     },
-    offMainProcessLog: (callback: MainProcessLogHandler) => {
-        ipcRenderer.removeListener("main-process-log", callback);
-    },
+    getAppVersion: () => ipcRenderer.invoke("get-app-version"),
     getGameState: () => ipcRenderer.invoke("get-game-state"),
-    onGameStateChange: (
-        callback: (event: Electron.IpcRendererEvent, state: unknown) => void,
-    ) => {
-        ipcRenderer.on("game-state-changed", callback);
-        return () => {
-            ipcRenderer.removeListener("game-state-changed", callback);
-        };
-    },
-    offGameStateChange: (
-        callback: (event: Electron.IpcRendererEvent, state: unknown) => void,
-    ) => {
-        ipcRenderer.removeListener("game-state-changed", callback);
-    },
-
     getHUDCustomize: () => ipcRenderer.invoke("get-hud-customize"),
     setHUDCustomize: (data: HUDCustomize) =>
         ipcRenderer.invoke("set-hud-customize", data),
@@ -36,25 +22,7 @@ const api = {
     restartHttpServer: (port: number) =>
         ipcRenderer.invoke("restart-http-server", port),
     getHttpServerStatus: () => ipcRenderer.invoke("get-http-server-status"),
-    onServerStatusChange: (
-        callback: (
-            event: Electron.IpcRendererEvent,
-            status: HTTPServerStatus,
-        ) => void,
-    ) => {
-        ipcRenderer.on("server-status-changed", callback);
-        return () => {
-            ipcRenderer.removeListener("server-status-changed", callback);
-        };
-    },
-    offServerStatusChange: (
-        callback: (
-            event: Electron.IpcRendererEvent,
-            status: HTTPServerStatus,
-        ) => void,
-    ) => {
-        ipcRenderer.removeListener("server-status-changed", callback);
-    },
+
     getThemes: () => ipcRenderer.invoke("get-themes"),
     setTheme: (themeId: string) => ipcRenderer.invoke("set-theme", themeId),
     getCurrentThemeId: () => ipcRenderer.invoke("get-current-theme-id"),

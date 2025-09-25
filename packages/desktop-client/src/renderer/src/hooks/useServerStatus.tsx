@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import type { HTTPServerStatus } from "../../../types";
+import { IPCEvents } from "../../../types/ipcEvents";
 
 export interface ServerStatusContextValue {
     readonly serverStatus: HTTPServerStatus | null;
@@ -28,10 +29,10 @@ export const ServerStatusContext: React.FC<PropsWithChildren> = ({
             setServerStatus(status);
         };
 
-        window.api.onServerStatusChange(handler);
+        window.api.ipcEvent.on(IPCEvents.ServerStatusChange, handler);
         syncServerStatus(); // 初回同期
         return () => {
-            window.api.offServerStatusChange(handler);
+            window.api.ipcEvent.off(IPCEvents.ServerStatusChange, handler);
         };
     }, []);
 
