@@ -3,7 +3,7 @@ import {
     AllPlayersApi,
     EventsApi,
     GameApi,
-} from "@lol-observer/leagoflegends-client";
+} from "@nexus/leagoflegends-client";
 import EventEmitter from "events";
 import { GoldObserver, GoldObserverEvents } from "./goldObserver";
 

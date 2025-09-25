@@ -1,4 +1,4 @@
-import { GameOnlyEvents, TeamEvents, Game } from "@lol-observer/core";
+import { GameOnlyEvents, TeamEvents, Game } from "@nexus/core";
 import { GameStats, GameTime } from "../types";
 
 let game: Game | null = null;

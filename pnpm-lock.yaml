@@ -23,7 +23,7 @@ importers:
 
   packages/cli:
     dependencies:
-      '@lol-observer/core':
+      '@nexus/core':
         specifier: workspace:*
         version: link:../core
       chalk:
@@ -39,7 +39,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@lol-observer/leagoflegends-client':
+      '@nexus/leagoflegends-client':
         specifier: workspace:*
         version: link:../leagoflegends-client
       axios:
@@ -62,20 +62,7 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  packages/leagoflegends-client:
-    dependencies:
-      axios:
-        specifier: ^1.6.1
-        version: 1.12.2
-    devDependencies:
-      '@types/node':
-        specifier: 12.11.5 - 12.20.42
-        version: 12.20.42
-      typescript:
-        specifier: ^4.0 || ^5.0
-        version: 5.9.2
-
-  packages/lol-custom-hud:
+  packages/desktop-client:
     dependencies:
       '@electron-toolkit/preload':
         specifier: ^3.0.2
@@ -95,15 +82,15 @@ importers:
       '@img/sharp-win32-x64':
         specifier: '*'
         version: 0.34.4
-      '@lol-observer/core':
-        specifier: workspace:*
-        version: link:../core
       '@mui/icons-material':
         specifier: ^7.3.2
         version: 7.3.2(@mui/material@7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@types/react@19.1.13)(react@19.1.1)
       '@mui/material':
         specifier: ^7.3.2
         version: 7.3.2(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react@19.1.1))(@types/react@19.1.13)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@nexus/core':
+        specifier: workspace:*
+        version: link:../core
       '@tanstack/react-router':
         specifier: ^1.131.50
         version: 1.131.50(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -213,6 +200,19 @@ importers:
       vite:
         specifier: ^7.1.6
         version: 7.1.6(@types/node@22.18.6)(tsx@4.20.5)
+
+  packages/leagoflegends-client:
+    dependencies:
+      axios:
+        specifier: ^1.6.1
+        version: 1.12.2
+    devDependencies:
+      '@types/node':
+        specifier: 12.11.5 - 12.20.42
+        version: 12.20.42
+      typescript:
+        specifier: ^4.0 || ^5.0
+        version: 5.9.2
 
 packages:
 
@@ -5661,7 +5661,7 @@ snapshots:
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 22.18.6
+      '@types/node': 12.20.42
     optional: true
 
   '@typescript-eslint/eslint-plugin@8.44.0(@typescript-eslint/parser@8.44.0(eslint@9.36.0)(typescript@5.9.2))(eslint@9.36.0)(typescript@5.9.2)':

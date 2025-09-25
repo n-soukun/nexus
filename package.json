@@ -1,5 +1,5 @@
 {
-    "name": "lol-custom-overlay",
+    "name": "nexus",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -10,7 +10,8 @@
     "packageManager": "pnpm@10.17.0",
     "scripts": {
         "generate": "node generate.js",
-        "cli": "pnpm -F \"@lol-observer/cli\""
+        "cli": "pnpm -F \"@nexus/cli\"",
+        "desktop-client": "pnpm -F \"@nexus/desktop-client\""
     },
     "keywords": [],
     "author": "n-soukun",
