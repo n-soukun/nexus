@@ -15,7 +15,7 @@ asarUnpack:
     - "**/node_modules/@img/**/*"
 
 win:
-    executableName: neXus
+    executableName: nexus
 nsis:
     artifactName: ${name}-${version}-setup.${ext}
     shortcutName: ${productName}
