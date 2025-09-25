@@ -13,10 +13,10 @@ nuXus currently supports only Japanese.
 
 現在、nuXusはWindowsでのみ利用可能です。
 
-| バージョン | インストーラー                                                                                                         | ZIP ファイル                                                                                               |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Latest     | [windows-x64-nexus-setup.exe](https://github.com/n-soukun/nexus/releases/downloads/latest/windows-x64-nexus-setup.exe) | [windows-x64-nexus.zip](https://github.com/n-soukun/nexus/releases/downloads/latest/windows-x64-nexus.zip) |
-| v0.0.1     | [windows-x64-nexus-setup.exe](https://github.com/n-soukun/nexus/releases/downloads/v0.0.1/neXus-setup.exe)             | [windows-x64-nexus.zip](https://github.com/n-soukun/nexus/releases/downloads/v0.0.1/windows-x64-nexus.zip) |
+| バージョン | インストーラー                                                                                                        | ZIP ファイル                                                                                              |
+| ---------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Latest     | [windows-x64-nexus-setup.exe](https://github.com/n-soukun/nexus/releases/latest/download/windows-x64-nexus-setup.exe) | [windows-x64-nexus.zip](https://github.com/n-soukun/nexus/releases/latest/download/windows-x64-nexus.zip) |
+| v0.0.1     | [windows-x64-nexus-setup.exe](https://github.com/n-soukun/nexus/releases/download/v0.0.1/windows-x64-nexus-setup.exe) | [windows-x64-nexus.zip](https://github.com/n-soukun/nexus/releases/download/v0.0.1/windows-x64-nexus.zip) |
 
 ## テーマについて
 
