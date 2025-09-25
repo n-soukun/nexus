@@ -99,7 +99,7 @@ function HomeComponent(): React.JSX.Element {
                             />
                             <CardContent>
                                 <Typography variant="body1">
-                                    テーマを変更して、HUDの見た目をカスタマイズできます。
+                                    テーマを追加・変更することで、簡単にオーバーレイの見た目を変更できます。
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -130,7 +130,7 @@ function HomeComponent(): React.JSX.Element {
                             />
                             <CardContent>
                                 <Typography variant="body1">
-                                    チーム名・ブランドロゴなどを変更できます
+                                    チームの名前やロゴを設定したり、ブランドロゴや試合ルールを設定できます。
                                 </Typography>
                             </CardContent>
                         </Card>
