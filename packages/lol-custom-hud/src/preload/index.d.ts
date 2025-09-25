@@ -1,5 +1,5 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
-import { HTTPServerStatus, HUDCustomize } from "src/types";
+import { HTTPServerStatus, HUDCustomize, ThemeManifestV1 } from "src/types";
 
 declare global {
     interface Window {
@@ -35,6 +35,13 @@ declare global {
                     status: HTTPServerStatus,
                 ) => void,
             ) => void;
+            getThemes: () => Promise<ThemeManifestV1[]>;
+            setTheme: (themeId: string) => Promise<boolean>;
+            getCurrentThemeId: () => Promise<string>;
+            openNewThemeDialog: () => Promise<AddThemeResult>;
+            continueVersionUp: () => Promise<AddThemeResult>;
+            cancelVersionUp: () => Promise<void>;
+            deleteThemeById: (themeId: string) => Promise<boolean>;
         };
     }
 }

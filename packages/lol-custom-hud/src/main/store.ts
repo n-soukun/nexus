@@ -1,10 +1,16 @@
 import Store from "electron-store";
-import { HTTPServerConfig, HUDCustomize, WindowState } from "../types";
+import {
+    HTTPServerConfig,
+    HUDCustomize,
+    ThemeConfig,
+    WindowState,
+} from "../types";
 
 interface StoreSchema {
     hudCustomize: HUDCustomize;
     windowState: WindowState;
     httpServerConfig: HTTPServerConfig;
+    themeConfig: ThemeConfig;
 }
 
 const store = new Store<StoreSchema>({
@@ -23,6 +29,7 @@ const store = new Store<StoreSchema>({
         },
         windowState: { x: 100, y: 100, width: 900, height: 670 },
         httpServerConfig: { port: 3000 },
+        themeConfig: { themeId: "default" },
     },
 });
 
@@ -48,4 +55,12 @@ export function getHTTPServerConfig(): HTTPServerConfig {
 
 export function setHTTPServerConfig(config: HTTPServerConfig): void {
     store.set("httpServerConfig", config);
+}
+
+export function getThemeConfig(): ThemeConfig {
+    return store.get("themeConfig");
+}
+
+export function setThemeConfig(config: ThemeConfig): void {
+    store.set("themeConfig", config);
 }

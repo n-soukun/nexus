@@ -3,6 +3,7 @@ import {
     Palette,
     Settings,
     SportsEsports,
+    Tune,
     VideogameAsset,
     VideogameAssetOff,
     WifiTethering,
@@ -43,7 +44,8 @@ interface MenuItem {
 const MenuList: MenuItem[] = [
     { title: "ホーム", icon: <Home />, link: "/home" },
     { title: "ゲーム情報", icon: <SportsEsports />, link: "/gamestats" },
-    { title: "カスタマイズ", icon: <Palette />, link: "/customize" },
+    { title: "テーマ", icon: <Palette />, link: "/theme" },
+    { title: "カスタマイズ", icon: <Tune />, link: "/customize" },
 ];
 
 const BottomMenuList: MenuItem[] = [

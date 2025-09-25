@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ThemeRouteImport } from './routes/theme'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as GamestatsRouteImport } from './routes/gamestats'
 import { Route as CustomizeRouteImport } from './routes/customize'
 
+const ThemeRoute = ThemeRouteImport.update({
+  id: '/theme',
+  path: '/theme',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/gamestats': typeof GamestatsRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
+  '/theme': typeof ThemeRoute
 }
 export interface FileRoutesByTo {
   '/customize': typeof CustomizeRoute
   '/gamestats': typeof GamestatsRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
+  '/theme': typeof ThemeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,20 @@ export interface FileRoutesById {
   '/gamestats': typeof GamestatsRoute
   '/home': typeof HomeRoute
   '/settings': typeof SettingsRoute
+  '/theme': typeof ThemeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/customize' | '/gamestats' | '/home' | '/settings'
+  fullPaths: '/customize' | '/gamestats' | '/home' | '/settings' | '/theme'
   fileRoutesByTo: FileRoutesByTo
-  to: '/customize' | '/gamestats' | '/home' | '/settings'
-  id: '__root__' | '/customize' | '/gamestats' | '/home' | '/settings'
+  to: '/customize' | '/gamestats' | '/home' | '/settings' | '/theme'
+  id:
+    | '__root__'
+    | '/customize'
+    | '/gamestats'
+    | '/home'
+    | '/settings'
+    | '/theme'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +82,18 @@ export interface RootRouteChildren {
   GamestatsRoute: typeof GamestatsRoute
   HomeRoute: typeof HomeRoute
   SettingsRoute: typeof SettingsRoute
+  ThemeRoute: typeof ThemeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/theme': {
+      id: '/theme'
+      path: '/theme'
+      fullPath: '/theme'
+      preLoaderRoute: typeof ThemeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -107,6 +130,7 @@ const rootRouteChildren: RootRouteChildren = {
   GamestatsRoute: GamestatsRoute,
   HomeRoute: HomeRoute,
   SettingsRoute: SettingsRoute,
+  ThemeRoute: ThemeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

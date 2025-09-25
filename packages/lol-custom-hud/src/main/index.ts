@@ -1,5 +1,15 @@
-import { app, shell, BrowserWindow, ipcMain, dialog, screen } from "electron";
-import { join } from "path";
+import {
+    app,
+    shell,
+    BrowserWindow,
+    ipcMain,
+    dialog,
+    screen,
+    Tray,
+    Menu,
+    nativeImage,
+} from "electron";
+import path, { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { base64 } from "base64-img";
 import type { WebSocket as WsWebSocket } from "ws";
@@ -10,10 +20,12 @@ import type {
     HTTPServerStatus,
     HUDCustomize,
     WindowState,
+    AddThemeResult,
 } from "../types";
 import icon from "../../resources/icon.png?asset";
 import {
     getServerStatus,
+    offServerStatusChange,
     onServerStatusChange,
     startServer,
     stopServer,
@@ -28,11 +40,27 @@ import { execute, getGameStats, getGameTime } from "./gameObserver";
 import {
     getHTTPServerConfig,
     getHUDCustomize,
+    getThemeConfig,
     getWindowState,
     setHTTPServerConfig,
     setHUDCustomize,
+    setThemeConfig,
     setWindowState,
 } from "./store";
+import { getResourcePath } from "./utils";
+import {
+    addThemeFromZip,
+    cancelVersionUp,
+    completeVersionUp,
+    deleteThemeById,
+    getThemes,
+} from "./theme";
+
+// システムトレイ用
+let tray: Tray;
+const trayIcon = nativeImage.createFromPath(
+    path.join(getResourcePath(), "icon.png"),
+);
 
 function handleReciveRequestCurrentData(ws: WsWebSocket): void {
     const stats = getGameStats();
@@ -157,24 +185,26 @@ function createWindow(): void {
         return { action: "deny" };
     });
 
-    // HTTPサーバーの開始
-
-    const httpServerConfig = getHTTPServerConfig();
-
-    // 状態変更イベントのハンドラ登録
+    // HTTPサーバー状態変更イベントハンドラー
     const httpServerStatusHandler = (status: HTTPServerStatus): void => {
         mainWindow.webContents.send("server-status-changed", status);
     };
-    onServerStatusChange(httpServerStatusHandler);
 
-    // 初回サーバー起動
-    startServer(httpServerConfig.port)
-        .then(() => {
-            console.log("Server started");
-        })
-        .catch((err) => {
-            console.error("Failed to start server:", err);
-        });
+    // HTTPサーバーの開始
+    const httpServerStatus = getServerStatus();
+    if (!httpServerStatus.running) {
+        const httpServerConfig = getHTTPServerConfig();
+        onServerStatusChange(httpServerStatusHandler);
+
+        // 初回サーバー起動
+        startServer(httpServerConfig.port)
+            .then(() => {
+                console.log("Server started");
+            })
+            .catch((err) => {
+                console.error("Failed to start server:", err);
+            });
+    }
 
     // WebSocketメッセージハンドラ登録
     registerReceiveMessageHandler(
@@ -216,6 +246,9 @@ function createWindow(): void {
             width: bounds.width,
             height: bounds.height,
         });
+
+        // ハンドラー解除
+        offServerStatusChange(httpServerStatusHandler);
     });
 }
 
@@ -255,6 +288,26 @@ function handleOpenImageFileDialog(): Promise<string | null> {
                 resolve(null);
             });
     });
+}
+
+async function handleOpenNewThemeDialog(): Promise<AddThemeResult> {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (!win) {
+        return { result: false, error: "ウィンドウが見つかりません。" };
+    }
+
+    const result = await dialog.showOpenDialog(win, {
+        title: "テーマのzipファイルを選択",
+        properties: ["openFile"],
+        filters: [{ name: "Zip", extensions: ["zip"] }],
+    });
+
+    if (result.canceled || result.filePaths.length === 0) {
+        return { result: false, error: "キャンセルされました。" };
+    }
+
+    const zipPath = result.filePaths[0];
+    return addThemeFromZip(zipPath);
 }
 
 async function restartHttpServer(): Promise<boolean> {
@@ -308,7 +361,61 @@ app.whenReady().then(() => {
         return getServerStatus();
     });
 
+    ipcMain.handle("get-themes", async () => {
+        return getThemes();
+    });
+
+    ipcMain.handle("set-theme", async (_event, themeId: string) => {
+        setThemeConfig({ themeId });
+        await restartHttpServer();
+        return true;
+    });
+
+    ipcMain.handle("get-current-theme-id", async () => {
+        const config = getThemeConfig();
+        return config.themeId;
+    });
+
+    ipcMain.handle("open-new-theme-dialog", async () => {
+        return handleOpenNewThemeDialog();
+    });
+
+    ipcMain.handle("continue-version-up", async () => {
+        return completeVersionUp();
+    });
+
+    ipcMain.handle("cancel-version-up", async () => {
+        return cancelVersionUp();
+    });
+
+    ipcMain.handle("delete-theme-by-id", async (_event, themeId: string) => {
+        const currentThemeId = getThemeConfig().themeId;
+        if (themeId === currentThemeId) {
+            return false; // 使用中のテーマは削除できない
+        }
+
+        return deleteThemeById(themeId);
+    });
+
     createWindow();
+
+    // システムトレイ
+    tray = new Tray(trayIcon);
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: "nuXusを開く",
+            click: () => {
+                const wins = BrowserWindow.getAllWindows();
+                if (wins.length === 0) {
+                    createWindow();
+                } else {
+                    wins[0].focus();
+                }
+            },
+        },
+        { role: "quit", label: "終了" },
+    ]);
+    tray.setContextMenu(contextMenu);
 
     app.on("activate", function () {
         // On macOS it's common to re-create a window in the app when the
@@ -321,9 +428,10 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
+    // システムトレイへ常駐するためコメントアウト
+    // if (process.platform !== "darwin") {
+    //     app.quit();
+    // }
 });
 
 // In this file you can include the rest of your app's specific main process

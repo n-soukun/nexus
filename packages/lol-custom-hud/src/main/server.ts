@@ -2,10 +2,12 @@ import { app } from "electron";
 import express from "express";
 import expressWs from "express-ws";
 import path from "path";
+import fs from "fs";
+import { Server } from "http";
 
 import wsRouter from "./websocket";
-import { Server } from "http";
 import { HTTPServerStatus } from "../types";
+import { getCurrentThemeSafe, getThemesDirectory } from "./theme";
 
 type ServerStatusChangeCallback = (status: HTTPServerStatus) => void;
 
@@ -46,14 +48,23 @@ export function getPublicPath(): string {
     }
 }
 
-export function startServer(
+export async function startServer(
     port: number = 3000,
 ): Promise<expressWs.Application> {
     const _app = express();
     const wsInstance = expressWs(_app);
     const app = wsInstance.app;
 
-    app.use(express.static(getPublicPath())); // 静的ファイルを配信
+    const themeDir = getThemesDirectory();
+    const currentTheme = await getCurrentThemeSafe();
+    const currentThemePath = path.join(themeDir, currentTheme.themeId);
+    if (!fs.existsSync(currentThemePath)) {
+        throw new Error(
+            `Current theme path does not exist: ${currentThemePath}`,
+        );
+    }
+
+    app.use(express.static(currentThemePath)); // 静的ファイルを配信
 
     app.use("/ws", wsRouter); // WebSocketルーターを使用
 

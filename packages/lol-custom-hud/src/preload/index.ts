@@ -45,6 +45,14 @@ const api = {
     ) => {
         ipcRenderer.removeListener("server-status-changed", callback);
     },
+    getThemes: () => ipcRenderer.invoke("get-themes"),
+    setTheme: (themeId: string) => ipcRenderer.invoke("set-theme", themeId),
+    getCurrentThemeId: () => ipcRenderer.invoke("get-current-theme-id"),
+    openNewThemeDialog: () => ipcRenderer.invoke("open-new-theme-dialog"),
+    continueVersionUp: () => ipcRenderer.invoke("continue-version-up"),
+    cancelVersionUp: () => ipcRenderer.invoke("cancel-version-up"),
+    deleteThemeById: (themeId: string) =>
+        ipcRenderer.invoke("delete-theme-by-id", themeId),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -1,0 +1,15 @@
+{
+    "manifestVersion": 1,
+    "themeId": "com.example.default",
+    "name": "Default",
+    "description": "A basic theme for the HUD",
+    "thumbnail": "thumbnail.jpg",
+    "width": 1920,
+    "height": 1080,
+    "version": "1.0.0",
+    "author": "Your Name",
+    "authorUrl": "https://yourwebsite.com",
+    "website": "https://yourwebsite.com/basic-theme",
+    "license": "MIT",
+    "licenseUrl": "https://opensource.org/licenses/MIT"
+}
