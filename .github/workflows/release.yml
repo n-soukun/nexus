@@ -66,7 +66,7 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+              run: pnpm install
 
             - name: Update package version
               run: |
@@ -76,16 +76,8 @@ jobs:
                   $packageJson.version = $version
                   $packageJson | ConvertTo-Json -Depth 10 | Set-Content $packageJsonPath -Encoding UTF8
 
-            - name: Build desktop client
-              run: pnpm desktop-client build
-
-            - name: Build Windows installer
+            - name: Build Windows App
               run: pnpm desktop-client build:win
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Build Windows portable
-              run: pnpm desktop-client build:win --portable
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -102,7 +94,7 @@ jobs:
 
                       ## Windows Downloads
                       - **Installer**: Download and run the setup file
-                      - **Portable**: Extract and run without installation
+                      - **Zip Version**: Extract and run without installation
 
                       Auto-generated from PR: ${{ github.event.pull_request.title }}
                   draft: false
@@ -118,28 +110,43 @@ jobs:
                   asset_name: neXus-${{ needs.check-pr-title.outputs.version }}-setup.exe
                   asset_content_type: application/octet-stream
 
-            - name: Find portable archive
-              id: find-portable
+            - name: Create Zip Version from win-unpacked
               shell: pwsh
               run: |
-                  $portableFile = Get-ChildItem -Path "packages/desktop-client/dist" -Filter "*portable*.exe" -Recurse | Select-Object -First 1
-                  if ($portableFile) {
-                    echo "portable-path=$($portableFile.FullName)" >> $env:GITHUB_OUTPUT
-                    echo "portable-name=neXus-${{ needs.check-pr-title.outputs.version }}-portable.exe" >> $env:GITHUB_OUTPUT
-                  } else {
-                    echo "Portable file not found"
-                    exit 1
-                  }
+                  $version = "${{ needs.check-pr-title.outputs.version }}"
+                  $unpackedPath = "packages/desktop-client/dist/win-unpacked"
+                  $zipName = "neXus-$version-win"
+                  $zipPath = "packages/desktop-client/dist"
 
-            - name: Upload Windows Portable
+                  # win-unpackedフォルダをneXus-{version}-winにリネーム
+                  if (Test-Path $unpackedPath) {
+                      $renamedPath = Join-Path $zipPath $zipName
+                      Move-Item -Path $unpackedPath -Destination $renamedPath
+                      
+                      # zipファイルを作成
+                      $zipFile = Join-Path $zipPath "$zipName.zip"
+                      Compress-Archive -Path $renamedPath -DestinationPath $zipFile -CompressionLevel Optimal
+                      
+                      echo "zip-path=$zipFile" >> $env:GITHUB_OUTPUT
+                      echo "zip-name=$zipName.zip" >> $env:GITHUB_OUTPUT
+                      
+                      Write-Host "Created zip file: $zipFile"
+                  } else {
+                      Write-Host "win-unpacked folder not found at: $unpackedPath"
+                      Get-ChildItem -Path "packages/desktop-client/dist" -Recurse
+                      exit 1
+                  }
+              id: create-zip
+
+            - name: Upload Windows Zip Version
               uses: actions/upload-release-asset@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: ${{ steps.find-portable.outputs.portable-path }}
-                  asset_name: ${{ steps.find-portable.outputs.portable-name }}
-                  asset_content_type: application/octet-stream
+                  asset_path: ${{ steps.create-zip.outputs.zip-path }}
+                  asset_name: ${{ steps.create-zip.outputs.zip-name }}
+                  asset_content_type: application/zip
 
     notify-success:
         needs: [check-pr-title, build-and-release]
