@@ -4,39 +4,11 @@ on:
     pull_request:
         types: [closed]
         branches: [main]
+    workflow_dispatch:
 
 jobs:
-    check-pr-title:
-        if: github.event.pull_request.merged == true
-        runs-on: ubuntu-latest
-        outputs:
-            should-release: ${{ steps.check-title.outputs.should-release }}
-            version: ${{ steps.extract-version.outputs.version }}
-        steps:
-            - name: Check PR title for version pattern
-              id: check-title
-              run: |
-                  PR_TITLE="${{ github.event.pull_request.title }}"
-                  if [[ $PR_TITLE =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    echo "should-release=true" >> $GITHUB_OUTPUT
-                    echo "PR title matches version pattern: $PR_TITLE"
-                  else
-                    echo "should-release=false" >> $GITHUB_OUTPUT
-                    echo "PR title does not match version pattern: $PR_TITLE"
-                  fi
-
-            - name: Extract version from PR title
-              id: extract-version
-              if: steps.check-title.outputs.should-release == 'true'
-              run: |
-                  PR_TITLE="${{ github.event.pull_request.title }}"
-                  VERSION=${PR_TITLE#v}
-                  echo "version=$VERSION" >> $GITHUB_OUTPUT
-                  echo "Extracted version: $VERSION"
-
     build-and-release:
-        needs: check-pr-title
-        if: needs.check-pr-title.outputs.should-release == 'true'
+        if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
         runs-on: windows-latest
         steps:
             - name: Checkout code
@@ -45,7 +17,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "20"
+                  node-version: "22"
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v4
@@ -66,15 +38,40 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
-            - name: Update package version
+            - name: Get version and tag information
+              id: version-info
+              shell: pwsh
               run: |
-                  $version = "${{ needs.check-pr-title.outputs.version }}"
-                  $packageJsonPath = "packages/desktop-client/package.json"
-                  $packageJson = Get-Content $packageJsonPath -Raw | ConvertFrom-Json
-                  $packageJson.version = $version
-                  $packageJson | ConvertTo-Json -Depth 10 | Set-Content $packageJsonPath -Encoding UTF8
+                  # package.json からバージョンを取得
+                  $packageJson = Get-Content "packages/desktop-client/package.json" -Raw | ConvertFrom-Json
+                  $packageVersion = $packageJson.version
+
+                  if ($env:GITHUB_EVENT_NAME -eq "workflow_dispatch") {
+                      # workflow_dispatch の場合は package.json のバージョンを使用
+                      $tagName = "v$packageVersion"
+                      $version = $packageVersion
+                      Write-Host "Manual release creation"
+                  } else {
+                      # PR の場合は PR タイトルを使用
+                      $prTitle = "${{ github.event.pull_request.title }}"
+                      $tagName = $prTitle
+                      
+                      # PRタイトルがv*.*.* 形式の場合はvを除去、そうでなければそのまま使用
+                      if ($prTitle -match "^v\d+\.\d+\.\d+.*$") {
+                          $version = $prTitle.Substring(1)
+                      } else {
+                          $version = $prTitle
+                      }
+                      Write-Host "Release from PR: $prTitle"
+                  }
+
+                  echo "tag-name=$tagName" >> $env:GITHUB_OUTPUT
+                  echo "version=$version" >> $env:GITHUB_OUTPUT
+
+                  Write-Host "Tag name: $tagName"
+                  Write-Host "Version: $version"
 
             - name: Build Windows App
               run: pnpm desktop-client build:win
@@ -87,16 +84,16 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: v${{ needs.check-pr-title.outputs.version }}
-                  release_name: neXus v${{ needs.check-pr-title.outputs.version }}
+                  tag_name: ${{ steps.version-info.outputs.tag-name }}
+                  release_name: neXus ${{ steps.version-info.outputs.tag-name }}
                   body: |
-                      Release v${{ needs.check-pr-title.outputs.version }}
+                      Release ${{ steps.version-info.outputs.tag-name }}
 
                       ## Windows Downloads
                       - **Installer**: Download and run the setup file
                       - **Zip Version**: Extract and run without installation
 
-                      Auto-generated from PR: ${{ github.event.pull_request.title }}
+                      ${{ github.event_name == 'workflow_dispatch' && 'Manual release creation' || format('Auto-generated from PR: {0}', github.event.pull_request.title) }}
                   draft: false
                   prerelease: false
 
@@ -106,14 +103,14 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
-                  asset_path: packages/desktop-client/dist/nexus-${{ needs.check-pr-title.outputs.version }}-setup.exe
-                  asset_name: neXus-${{ needs.check-pr-title.outputs.version }}-setup.exe
+                  asset_path: packages/desktop-client/dist/nexus-${{ steps.version-info.outputs.version }}-setup.exe
+                  asset_name: windows-x64-nexus-setup.exe
                   asset_content_type: application/octet-stream
 
             - name: Create Zip Version from win-unpacked
               shell: pwsh
               run: |
-                  $version = "${{ needs.check-pr-title.outputs.version }}"
+                  $version = "${{ steps.version-info.outputs.version }}"
                   $unpackedPath = "packages/desktop-client/dist/win-unpacked"
                   $zipName = "neXus-$version-win"
                   $zipPath = "packages/desktop-client/dist"
@@ -145,15 +142,12 @@ jobs:
               with:
                   upload_url: ${{ steps.create_release.outputs.upload_url }}
                   asset_path: ${{ steps.create-zip.outputs.zip-path }}
-                  asset_name: ${{ steps.create-zip.outputs.zip-name }}
+                  asset_name: windows-x64-nexus.zip
                   asset_content_type: application/zip
 
-    notify-success:
-        needs: [check-pr-title, build-and-release]
-        if: needs.build-and-release.result == 'success'
-        runs-on: ubuntu-latest
-        steps:
             - name: Notify success
+              shell: pwsh
               run: |
-                  echo "✅ Successfully released neXus v${{ needs.check-pr-title.outputs.version }}"
-                  echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.check-pr-title.outputs.version }}"
+                  $tagName = "${{ steps.version-info.outputs.tag-name }}"
+                  Write-Host "✅ Successfully released neXus $tagName"
+                  Write-Host "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/$tagName"
