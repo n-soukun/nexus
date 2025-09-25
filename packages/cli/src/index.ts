@@ -7,7 +7,7 @@ import {
     GameOnlyEvents,
     TeamEvents,
     Team,
-} from "@lol-observer/core";
+} from "@nexus/core";
 
 let game: Game | null = null;
 
@@ -234,9 +234,9 @@ function createStateMessage(order: Team, chaos: Team) {
     const blueGold = order.golds;
     const redGold = chaos.golds;
     return `${chalk.blueBright(
-        "ブルーチーム"
+        "ブルーチーム",
     )} ${blueGold.toLocaleString()}G - ${redGold.toLocaleString()}G ${chalk.redBright(
-        "レッドチーム"
+        "レッドチーム",
     )}`;
 }
 

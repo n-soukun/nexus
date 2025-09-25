@@ -1,5 +1,5 @@
 {
-    "name": "@lol-observer/core",
+    "name": "@nexus/core",
     "version": "1.0.0",
     "description": "",
     "main": "./dist/index.js",
@@ -13,7 +13,7 @@
     "license": "MIT",
     "packageManager": "pnpm@10.17.0",
     "dependencies": {
-        "@lol-observer/leagoflegends-client": "workspace:*",
+        "@nexus/leagoflegends-client": "workspace:*",
         "axios": "^1.12.2",
         "node-screenshots": "0.2.1",
         "sharp": "0.34.4",

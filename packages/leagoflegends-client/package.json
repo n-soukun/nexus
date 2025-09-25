@@ -1,7 +1,7 @@
 {
-    "name": "@lol-observer/leagoflegends-client",
+    "name": "@nexus/leagoflegends-client",
     "version": "1.0.0",
-    "description": "OpenAPI client for @lol-observer/leagoflegends-client",
+    "description": "OpenAPI client for @nexus/leagoflegends-client",
     "author": "OpenAPI-Generator Contributors",
     "repository": {
         "type": "git",
@@ -12,7 +12,7 @@
         "typescript",
         "openapi-client",
         "openapi-generator",
-        "@lol-observer/leagoflegends-client"
+        "@nexus/leagoflegends-client"
     ],
     "license": "Unlicense",
     "main": "./dist/index.js",
