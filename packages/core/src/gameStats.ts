@@ -392,17 +392,16 @@ export class PlayerData {
     update(data: Partial<CreatePlayerDataDTO>) {
         // 変更点があれば更新してイベントを発火
         let updated = false;
-        for (const key in data) {
-            if (data[key as keyof CreatePlayerDataDTO] !== undefined) {
-                if (
-                    this[key as keyof CreatePlayerDataDTO] !==
-                    data[key as keyof CreatePlayerDataDTO]
-                ) {
-                    (this as any)[key] = data[key as keyof CreatePlayerDataDTO];
+
+        (Object.keys(data) as (keyof CreatePlayerDataDTO)[]).forEach((key) => {
+            if (data[key] !== undefined) {
+                const fieldUpdated = this.updateField(key, data[key]!);
+                if (fieldUpdated) {
                     updated = true;
                 }
             }
-        }
+        });
+
         if (updated) {
             this.emitUpdate();
         }
@@ -415,7 +414,17 @@ export class PlayerData {
         this.eventEmitter.off(event, listener);
     }
 
-    emitUpdate() {
+    private updateField<
+        T extends keyof Pick<PlayerData, keyof CreatePlayerDataDTO>,
+    >(key: T, data: CreatePlayerDataDTO[T]): boolean {
+        if (this[key] !== data) {
+            this[key] = data as this[T];
+            return true;
+        }
+        return false;
+    }
+
+    private emitUpdate() {
         this.eventEmitter.emit("update");
     }
 }
@@ -578,7 +587,7 @@ export class PlayerCollection {
                     throw new Error(e.response?.data || e.message);
                 });
             const newPlayers = res.data.map(
-                (data: any) => new PlayerData(data),
+                (data: CreatePlayerDataDTO) => new PlayerData(data),
             );
 
             // 差分を比較
@@ -959,12 +968,12 @@ export type GameEventsListener = {
 
 export class Game {
     readonly teams: Record<TeamNames, Team>;
-    readonly gameMode: string;
-    readonly gameTime: number;
-    readonly mapName: string;
-    readonly mapNumber: number;
-    readonly mapTerrain: string;
     fetchInterval: number = 100;
+    private _gameMode: string;
+    private _gameTime: number;
+    private _mapName: string;
+    private _mapNumber: number;
+    private _mapTerrain: string;
     private eventCollection: EventCollection;
     private _players: Player[];
     private playerCollection: PlayerCollection;
@@ -1034,11 +1043,11 @@ export class Game {
         events: EventCollection,
         goldObserver: GoldObserver,
     ) {
-        this.gameMode = data.gameMode;
-        this.gameTime = data.gameTime;
-        this.mapName = data.mapName;
-        this.mapNumber = data.mapNumber;
-        this.mapTerrain = data.mapTerrain;
+        this._gameMode = data.gameMode;
+        this._gameTime = data.gameTime;
+        this._mapName = data.mapName;
+        this._mapNumber = data.mapNumber;
+        this._mapTerrain = data.mapTerrain;
         this.teams = {
             ORDER: new Team(
                 this,
@@ -1101,6 +1110,26 @@ export class Game {
         this.main();
     }
 
+    get gameMode(): string {
+        return this._gameMode;
+    }
+
+    get gameTime(): number {
+        return this._gameTime;
+    }
+
+    get mapName(): string {
+        return this._mapName;
+    }
+
+    get mapNumber(): number {
+        return this._mapNumber;
+    }
+
+    get mapTerrain(): string {
+        return this._mapTerrain;
+    }
+
     get players(): Player[] {
         return this._players;
     }
@@ -1152,24 +1181,24 @@ export class Game {
             const gameStats = res.data as CreateGameDTO;
 
             let updated = false;
-            if (this.gameMode !== gameStats.gameMode) {
-                (this as any).gameMode = gameStats.gameMode;
+            if (this._gameMode !== gameStats.gameMode) {
+                this._gameMode = gameStats.gameMode;
                 updated = true;
             }
-            if (this.gameTime !== gameStats.gameTime) {
-                (this as any).gameTime = gameStats.gameTime;
+            if (this._gameTime !== gameStats.gameTime) {
+                this._gameTime = gameStats.gameTime;
                 updated = true;
             }
-            if (this.mapName !== gameStats.mapName) {
-                (this as any).mapName = gameStats.mapName;
+            if (this._mapName !== gameStats.mapName) {
+                this._mapName = gameStats.mapName;
                 updated = true;
             }
-            if (this.mapNumber !== gameStats.mapNumber) {
-                (this as any).mapNumber = gameStats.mapNumber;
+            if (this._mapNumber !== gameStats.mapNumber) {
+                this._mapNumber = gameStats.mapNumber;
                 updated = true;
             }
-            if (this.mapTerrain !== gameStats.mapTerrain) {
-                (this as any).mapTerrain = gameStats.mapTerrain;
+            if (this._mapTerrain !== gameStats.mapTerrain) {
+                this._mapTerrain = gameStats.mapTerrain;
                 updated = true;
             }
             if (updated) {
