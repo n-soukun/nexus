@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import type { GameStats } from "../../../types";
+import { IPCEvents } from "../../../types";
 
 export interface GameStatsContextValue {
     gameStats: GameStats | null;
@@ -27,9 +28,9 @@ export const GameStatsContext: React.FC<PropsWithChildren> = ({ children }) => {
         };
 
         handler();
-        window.api.onGameStateChange(handler);
+        window.api.ipcEvent.on(IPCEvents.GameStateChange, handler);
         return () => {
-            window.api.offGameStateChange(handler);
+            window.api.ipcEvent.off(IPCEvents.GameStateChange, handler);
         };
     }, []);
 

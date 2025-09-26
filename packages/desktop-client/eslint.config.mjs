@@ -26,5 +26,13 @@ export default defineConfig(
             ...eslintPluginReactHooks.configs.recommended.rules,
             ...eslintPluginReactRefresh.configs.vite.rules,
         },
+        overrides: [
+            {
+                files: ["**/*.ts", "**/*.tsx"],
+                rules: {
+                    "react/prop-types": "off",
+                },
+            },
+        ],
     },
 );
