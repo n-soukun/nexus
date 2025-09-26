@@ -13,7 +13,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { base64 } from "base64-img";
 
 import type { HTTPServerStatus, HUDCustomize, AddThemeResult } from "../types";
-import { IPCEvents, type IPCEventsPayload } from "../types/ipcEvents";
+import { IPCEvents, type IPCEventsPayload } from "../types";
 import icon from "../../resources/icon.png?asset";
 import {
     getServerStatus,
@@ -28,7 +28,7 @@ import {
     sendMessage,
     SendMessageNames,
 } from "./websocket";
-import { GameObserver, GameObserverEvents, getGameStats } from "./gameObserver";
+import { GameObserver, GameObserverEvents } from "./gameObserver";
 import {
     getHTTPServerConfig,
     getHUDCustomize,
@@ -289,7 +289,7 @@ app.whenReady().then(() => {
 
     ipcMain.on("ping", () => console.log("pong"));
     ipcMain.handle("get-game-state", () => {
-        return getGameStats();
+        return gameObserver.getGameStats();
     });
     ipcMain.handle("get-hud-customize", async () => {
         return getHUDCustomize();

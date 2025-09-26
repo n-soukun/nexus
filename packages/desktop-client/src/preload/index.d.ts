@@ -1,6 +1,6 @@
 import { ElectronAPI } from "@electron-toolkit/preload";
 import { HTTPServerStatus, HUDCustomize, ThemeManifestV1 } from "src/types";
-import { IPCEvents, IPCEventsHandler } from "src/types/ipcEvents";
+import { IPCEvents, IPCEventsHandler } from "../types";
 
 declare global {
     interface Window {

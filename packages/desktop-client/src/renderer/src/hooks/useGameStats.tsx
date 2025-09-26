@@ -7,7 +7,7 @@ import {
 } from "react";
 
 import type { GameStats } from "../../../types";
-import { IPCEvents } from "../../../types/ipcEvents";
+import { IPCEvents } from "../../../types";
 
 export interface GameStatsContextValue {
     gameStats: GameStats | null;

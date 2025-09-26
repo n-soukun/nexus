@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
 import { HUDCustomize } from "../types";
-import { IPCEvents, IPCEventsHandler } from "../types/ipcEvents";
+import { IPCEvents, IPCEventsHandler } from "../types";
 
 // Custom APIs for renderer
 const api = {

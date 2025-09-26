@@ -7,7 +7,7 @@ import {
 } from "react";
 
 import type { HTTPServerStatus } from "../../../types";
-import { IPCEvents } from "../../../types/ipcEvents";
+import { IPCEvents } from "../../../types";
 
 export interface ServerStatusContextValue {
     readonly serverStatus: HTTPServerStatus | null;
