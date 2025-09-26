@@ -419,7 +419,7 @@ function ThemeComponent(): React.JSX.Element {
             {loading && (
                 <Grid container spacing={2}>
                     {Array.from({ length: 6 }).map((_, i) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4, xl: 3 }} key={i}>
                             <Skeleton variant="rounded" height={230} />
                         </Grid>
                     ))}
@@ -436,7 +436,7 @@ function ThemeComponent(): React.JSX.Element {
                         const isCurrent = t.themeId === currentThemeId;
                         return (
                             <Grid
-                                size={{ xs: 12, sm: 6, md: 4 }}
+                                size={{ xs: 12, sm: 6, md: 5, lg: 4, xl: 3 }}
                                 key={t.themeId}
                             >
                                 <ThemeCard
