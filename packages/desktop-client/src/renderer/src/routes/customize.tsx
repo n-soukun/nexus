@@ -1,4 +1,4 @@
-import { Edit, Save } from "@mui/icons-material";
+import { Close, Edit, Save, Upload } from "@mui/icons-material";
 import {
     Box,
     Button,
@@ -10,6 +10,7 @@ import {
     Grid,
     Rating,
     Stack,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import { LogoView } from "@renderer/components/LogoView";
@@ -27,6 +28,58 @@ import { HUDCustomize } from "src/types";
 export const Route = createFileRoute("/customize")({
     component: Customize,
 });
+
+interface LogoPickerProps {
+    logo: string;
+    onClickChange: () => void;
+    onClickReset: () => void;
+}
+
+const LogoPicker: React.FC<LogoPickerProps> = ({
+    logo,
+    onClickChange,
+    onClickReset,
+}) => {
+    return (
+        <Stack direction="row" alignItems="center" spacing={2}>
+            {logo ? (
+                <>
+                    <LogoView src={logo} />
+                    <Tooltip title="画像をアップロードして変更">
+                        <Button
+                            variant="text"
+                            component="label"
+                            onClick={onClickChange}
+                            startIcon={<Edit />}
+                        >
+                            変更
+                        </Button>
+                    </Tooltip>
+                    <Tooltip title="テーマのデフォルトに戻す">
+                        <Button
+                            variant="text"
+                            color="error"
+                            component="label"
+                            onClick={onClickReset}
+                            startIcon={<Close />}
+                        >
+                            リセット
+                        </Button>
+                    </Tooltip>
+                </>
+            ) : (
+                <Button
+                    variant="outlined"
+                    component="label"
+                    onClick={onClickChange}
+                    startIcon={<Upload />}
+                >
+                    画像を選択
+                </Button>
+            )}
+        </Stack>
+    );
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function Customize() {
@@ -197,7 +250,6 @@ function Customize() {
                                     name="blueLogo"
                                     type="hidden"
                                     control={control}
-                                    required
                                     sx={{ display: "none" }}
                                 />
                                 <Typography
@@ -207,25 +259,15 @@ function Customize() {
                                     チームロゴ
                                 </Typography>
 
-                                <Stack
-                                    direction="row"
-                                    alignItems="center"
-                                    spacing={2}
-                                >
-                                    {blueLogo ? (
-                                        <LogoView src={blueLogo} />
-                                    ) : null}
-                                    <Button
-                                        variant="text"
-                                        component="label"
-                                        onClick={() =>
-                                            handleSelectIcon("blueLogo")
-                                        }
-                                        startIcon={<Edit />}
-                                    >
-                                        変更
-                                    </Button>
-                                </Stack>
+                                <LogoPicker
+                                    logo={blueLogo}
+                                    onClickChange={() =>
+                                        handleSelectIcon("blueLogo")
+                                    }
+                                    onClickReset={() =>
+                                        setValue("blueLogo", "")
+                                    }
+                                />
                             </CardContent>
                         </Card>
                     </Grid>
@@ -298,7 +340,6 @@ function Customize() {
                                     name="redLogo"
                                     type="hidden"
                                     control={control}
-                                    required
                                     sx={{ display: "none" }}
                                 />
                                 <Typography
@@ -307,26 +348,13 @@ function Customize() {
                                 >
                                     チームロゴ
                                 </Typography>
-
-                                <Stack
-                                    direction="row"
-                                    alignItems="center"
-                                    spacing={2}
-                                >
-                                    {redLogo ? (
-                                        <LogoView src={redLogo} />
-                                    ) : null}
-                                    <Button
-                                        variant="text"
-                                        component="label"
-                                        onClick={() =>
-                                            handleSelectIcon("redLogo")
-                                        }
-                                        startIcon={<Edit />}
-                                    >
-                                        変更
-                                    </Button>
-                                </Stack>
+                                <LogoPicker
+                                    logo={redLogo}
+                                    onClickChange={() =>
+                                        handleSelectIcon("redLogo")
+                                    }
+                                    onClickReset={() => setValue("redLogo", "")}
+                                />
                             </CardContent>
                         </Card>
                     </Grid>
@@ -371,28 +399,17 @@ function Customize() {
                                 name="tournamentLogo"
                                 type="hidden"
                                 control={control}
-                                required
                                 sx={{ display: "none" }}
                             />
-                            <Stack
-                                direction="row"
-                                alignItems="center"
-                                spacing={2}
-                            >
-                                {tournamentLogo ? (
-                                    <LogoView src={tournamentLogo} />
-                                ) : null}
-                                <Button
-                                    variant="text"
-                                    component="label"
-                                    onClick={() =>
-                                        handleSelectIcon("tournamentLogo")
-                                    }
-                                    startIcon={<Edit />}
-                                >
-                                    変更
-                                </Button>
-                            </Stack>
+                            <LogoPicker
+                                logo={tournamentLogo}
+                                onClickChange={() =>
+                                    handleSelectIcon("tournamentLogo")
+                                }
+                                onClickReset={() =>
+                                    setValue("tournamentLogo", "")
+                                }
+                            />
                         </CardContent>
                     </Card>
                 </Grid>
