@@ -27,6 +27,7 @@ import {
 } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AddThemeResult, ThemeManifestV1 } from "src/types";
 
 export const Route = createFileRoute("/theme")({
@@ -48,6 +49,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
     handleSetTheme,
     handleDelete,
 }) => {
+    const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
     const menuOpen = Boolean(anchorEl);
@@ -98,7 +100,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
                 }
                 action={
                     <>
-                        <Tooltip title="その他の操作">
+                        <Tooltip title={t("tooltip.otherActions")}>
                             <IconButton onClick={handleMenuClick}>
                                 <MoreVert />
                             </IconButton>
@@ -121,7 +123,9 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
                                 <ListItemIcon>
                                     <Delete fontSize="small" />
                                 </ListItemIcon>
-                                <ListItemText>削除</ListItemText>
+                                <ListItemText>
+                                    {t("button.delete")}
+                                </ListItemText>
                             </MenuItem>
                         </Menu>
                     </>
@@ -156,7 +160,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
                     )}
                     <Stack spacing={0.5} sx={{ mt: 1.5 }}>
                         {renderInfoRow(
-                            "作者",
+                            t("text.author"),
                             theme.author ? (
                                 theme.authorUrl ? (
                                     <MUILink
@@ -173,7 +177,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
                             ) : undefined,
                         )}
                         {renderInfoRow(
-                            "サイト",
+                            t("text.website"),
                             theme.website ? (
                                 <MUILink
                                     href={theme.website}
@@ -186,7 +190,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
                             ) : undefined,
                         )}
                         {renderInfoRow(
-                            "ライセンス",
+                            t("text.license"),
                             theme.license ? (
                                 theme.licenseUrl ? (
                                     <MUILink
@@ -213,7 +217,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
                     loading={applyingThemeId === theme.themeId}
                     onClick={() => handleSetTheme(theme.themeId)}
                 >
-                    {isCurrent ? "適用済み" : "適用"}
+                    {isCurrent ? t("button.applied") : t("button.apply")}
                 </Button>
             </CardActions>
         </Card>
@@ -221,6 +225,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({
 };
 
 function ThemeComponent(): React.JSX.Element {
+    const { t } = useTranslation();
     const [themes, setThemes] = useState<ThemeManifestV1[]>([]);
     const [addThemeLoading, setAddThemeLoading] = useState<boolean>(false);
     const [currentThemeId, setCurrentThemeId] = useState<string>("");
@@ -288,8 +293,8 @@ function ThemeComponent(): React.JSX.Element {
                 setSnackbar({
                     open: true,
                     message: success
-                        ? "テーマを適用しました"
-                        : "テーマの適用に失敗しました",
+                        ? t("toast.themeApplied")
+                        : t("toast.failedToApplyTheme"),
                     severity: success ? "success" : "error",
                 });
             } finally {
@@ -308,7 +313,7 @@ function ThemeComponent(): React.JSX.Element {
         if (themeId === currentThemeId) {
             setSnackbar({
                 open: true,
-                message: "使用中のテーマは削除できません",
+                message: t("toast.cannotDeleteCurrentTheme"),
                 severity: "error",
             });
             return;
@@ -334,13 +339,13 @@ function ThemeComponent(): React.JSX.Element {
             await loadThemes();
             setSnackbar({
                 open: true,
-                message: "テーマを削除しました",
+                message: t("toast.themeDeleted"),
                 severity: "success",
             });
         } else {
             setSnackbar({
                 open: true,
-                message: "テーマの削除に失敗しました",
+                message: t("toast.failedToDeleteTheme"),
                 severity: "error",
             });
         }
@@ -358,14 +363,14 @@ function ThemeComponent(): React.JSX.Element {
         } else if (result.result) {
             setSnackbar({
                 open: true,
-                message: "テーマを追加しました",
+                message: t("toast.themeAdded"),
                 severity: "success",
             });
             await loadThemes();
         } else {
             setSnackbar({
                 open: true,
-                message: result.error || "テーマの追加に失敗しました",
+                message: result.error || t("toast.failedToAddTheme"),
                 severity: "error",
             });
         }
@@ -378,14 +383,14 @@ function ThemeComponent(): React.JSX.Element {
         if (res.result) {
             setSnackbar({
                 open: true,
-                message: "テーマをバージョンアップしました",
+                message: t("toast.themeUpgraded"),
                 severity: "success",
             });
             await loadThemes();
         } else {
             setSnackbar({
                 open: true,
-                message: res.error || "テーマのバージョンアップに失敗しました",
+                message: res.error || t("toast.failedToUpgradeTheme"),
                 severity: "error",
             });
         }
@@ -404,7 +409,7 @@ function ThemeComponent(): React.JSX.Element {
                 alignContent={"center"}
             >
                 <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                    テーマ一覧
+                    {t("screenTitle.themes")}
                 </Typography>
                 <Box>
                     <Button
@@ -412,7 +417,7 @@ function ThemeComponent(): React.JSX.Element {
                         onClick={handleAddTheme}
                         loading={addThemeLoading}
                     >
-                        テーマを追加
+                        {t("button.addTheme")}
                     </Button>
                 </Box>
             </Stack>
@@ -427,7 +432,7 @@ function ThemeComponent(): React.JSX.Element {
             )}
             {!loading && sortedThemes.length === 0 && (
                 <Box sx={{ color: "text.secondary" }}>
-                    利用可能なテーマがありません。
+                    {t("text.noThemesAvailable")}
                 </Box>
             )}
             {!loading && sortedThemes.length > 0 && (
@@ -466,7 +471,9 @@ function ThemeComponent(): React.JSX.Element {
                 aria-labelledby="delete-dialog-title"
                 aria-describedby="delete-dialog-description"
             >
-                <DialogTitle id="delete-dialog-title">テーマの削除</DialogTitle>
+                <DialogTitle id="delete-dialog-title">
+                    {t("dialog.deleteTheme.title")}
+                </DialogTitle>
                 <DialogContent
                     sx={{
                         maxWidth: 400,
@@ -474,22 +481,23 @@ function ThemeComponent(): React.JSX.Element {
                     }}
                 >
                     <DialogContentText id="delete-dialog-description">
-                        本当に「{deleteConfirmDialog.themeName}
-                        」を削除しますか？
+                        {t("dialog.deleteTheme.description1", {
+                            name: deleteConfirmDialog.themeName,
+                        })}
                         <br />
-                        この操作は取り消せません。
+                        {t("dialog.deleteTheme.description2")}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleDeleteCancel} color={"inherit"}>
-                        キャンセル
+                        {t("button.cancel")}
                     </Button>
                     <Button
                         onClick={handleDeleteConfirm}
                         color="error"
                         autoFocus
                     >
-                        削除
+                        {t("button.delete")}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -502,7 +510,7 @@ function ThemeComponent(): React.JSX.Element {
                 aria-describedby="version-up-dialog-description"
             >
                 <DialogTitle id="version-up-dialog-title">
-                    テーマのバージョンアップ
+                    {t("dialog.upgradeTheme.title")}
                 </DialogTitle>
                 <DialogContent
                     sx={{
@@ -511,21 +519,21 @@ function ThemeComponent(): React.JSX.Element {
                     }}
                 >
                     <DialogContentText id="version-up-dialog-description">
-                        バージョンアップ用のテーマが追加されました。
+                        {t("dialog.upgradeTheme.description1")}
                         <br />
-                        バージョンアップを実行しますか？
+                        {t("dialog.upgradeTheme.description2")}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleVersionUpCancel} color={"inherit"}>
-                        キャンセル
+                        {t("button.cancel")}
                     </Button>
                     <Button
                         onClick={handleVersionUpConfirm}
                         autoFocus
                         color="success"
                     >
-                        実行
+                        {t("button.execute")}
                     </Button>
                 </DialogActions>
             </Dialog>

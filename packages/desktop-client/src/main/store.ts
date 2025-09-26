@@ -4,6 +4,7 @@ import {
     HUDCustomize,
     ThemeConfig,
     WindowState,
+    AppearanceConfig,
 } from "../types";
 
 interface StoreSchema {
@@ -11,6 +12,7 @@ interface StoreSchema {
     windowState: WindowState;
     httpServerConfig: HTTPServerConfig;
     themeConfig: ThemeConfig;
+    appearanceConfig: AppearanceConfig;
 }
 
 const store = new Store<StoreSchema>({
@@ -30,6 +32,7 @@ const store = new Store<StoreSchema>({
         windowState: { x: 100, y: 100, width: 900, height: 670 },
         httpServerConfig: { port: 3000 },
         themeConfig: { themeId: "default" },
+        appearanceConfig: { colorMode: "dark", language: "en" },
     },
 });
 
@@ -63,4 +66,12 @@ export function getThemeConfig(): ThemeConfig {
 
 export function setThemeConfig(config: ThemeConfig): void {
     store.set("themeConfig", config);
+}
+
+export function getAppearanceConfig(): AppearanceConfig {
+    return store.get("appearanceConfig");
+}
+
+export function setAppearanceConfig(config: AppearanceConfig): void {
+    store.set("appearanceConfig", config);
 }

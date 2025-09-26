@@ -3,3 +3,4 @@ export * from "./httpServer";
 export * from "./ipcEvents";
 export * from "./main";
 export * from "./theme";
+export * from "./appearance";

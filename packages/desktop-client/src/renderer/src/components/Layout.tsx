@@ -41,6 +41,9 @@ import { useGameStats } from "@renderer/hooks/useGameStats";
 import { useCallback, useEffect, useState } from "react";
 import { textToClipboard } from "@renderer/utils";
 
+import { useTranslation } from "react-i18next";
+import { TFunction } from "i18next";
+
 interface MenuItem {
     title: string;
     icon: React.JSX.Element;
@@ -48,14 +51,14 @@ interface MenuItem {
 }
 
 const MenuList: MenuItem[] = [
-    { title: "ホーム", icon: <Home />, link: "/home" },
-    { title: "ゲーム情報", icon: <SportsEsports />, link: "/gamestats" },
-    { title: "テーマ", icon: <Palette />, link: "/theme" },
-    { title: "カスタマイズ", icon: <Tune />, link: "/customize" },
+    { title: "menu.home", icon: <Home />, link: "/home" },
+    { title: "menu.gameInfo", icon: <SportsEsports />, link: "/gamestats" },
+    { title: "menu.themes", icon: <Palette />, link: "/theme" },
+    { title: "menu.customize", icon: <Tune />, link: "/customize" },
 ];
 
 const BottomMenuList: MenuItem[] = [
-    { title: "設定", icon: <Settings />, link: "/settings" },
+    { title: "menu.settings", icon: <Settings />, link: "/settings" },
 ];
 
 const drawerWidth = 240;
@@ -107,6 +110,7 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 interface SideBarListItemProps {
+    t: TFunction;
     item: MenuItem;
     index: number;
     sideBarOpen: boolean;
@@ -115,6 +119,7 @@ interface SideBarListItemProps {
 }
 
 const SideBarListItem: React.FC<SideBarListItemProps> = ({
+    t,
     item,
     index,
     sideBarOpen,
@@ -167,7 +172,7 @@ const SideBarListItem: React.FC<SideBarListItemProps> = ({
                                   opacity: 0,
                               },
                     ]}
-                    primary={item.title}
+                    primary={t(item.title)}
                 />
             </ListItemButton>
         </ListItem>
@@ -177,6 +182,7 @@ const SideBarListItem: React.FC<SideBarListItemProps> = ({
 export interface LayoutProps extends BoxProps {}
 
 export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
+    const { t } = useTranslation();
     const theme = useTheme();
     const location = useLocation();
     const { serverStatus } = useServerStatus();
@@ -196,12 +202,12 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
 
     const handleCopy = useCallback(async () => {
         if (!serverStatus?.running) {
-            showMessage("サーバーが起動していません");
+            showMessage(t("toast.serverNotRunning"));
             return;
         }
         const url = `http://localhost:${serverStatus.port}`;
         const ok = await copyTextToClipboard(url);
-        showMessage(ok ? "URLをコピーしました" : "コピーに失敗しました");
+        showMessage(ok ? t("toast.urlCopied") : t("toast.failedToCopyUrl"));
     }, [serverStatus, copyTextToClipboard, showMessage]);
 
     const navigate = useNavigate();
@@ -280,6 +286,7 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                         {MenuList.map((item, index) => (
                             <SideBarListItem
                                 key={index}
+                                t={t}
                                 item={item}
                                 index={index}
                                 sideBarOpen={sideBarOpen}
@@ -293,6 +300,7 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                         {BottomMenuList.map((item, index) => (
                             <SideBarListItem
                                 key={index}
+                                t={t}
                                 item={item}
                                 index={index}
                                 sideBarOpen={sideBarOpen}
@@ -313,8 +321,8 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                         <Tooltip
                             title={
                                 gameStats
-                                    ? "ゲームは進行中です"
-                                    : "ゲームクライアントが起動していません"
+                                    ? t("tooltip.gameRunning")
+                                    : t("tooltip.gameClientNotRunning")
                             }
                         >
                             <ButtonBase
@@ -365,9 +373,11 @@ export function Layout({ children, ...rest }: LayoutProps): React.JSX.Element {
                             title={
                                 serverStatus
                                     ? serverStatus.running
-                                        ? `サーバーは http://localhost:${serverStatus?.port} で起動しています`
-                                        : "サーバーは停止中です"
-                                    : "サーバーステータスの取得に失敗しました"
+                                        ? t("tooltip.serverRunning", {
+                                              url: `http://localhost:${serverStatus.port}`,
+                                          })
+                                        : t("tooltip.serverStopped")
+                                    : t("tooltip.failedToFetchServerStatus")
                             }
                         >
                             <ButtonBase

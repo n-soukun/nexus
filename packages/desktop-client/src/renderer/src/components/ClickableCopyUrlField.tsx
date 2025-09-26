@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { textToClipboard } from "@renderer/utils";
+import { useTranslation } from "react-i18next";
 
 interface ClickableCopyUrlFieldProps {
     port: number;
@@ -29,6 +30,7 @@ export function ClickableCopyUrlField({
     loading = false,
     onFeedback,
 }: ClickableCopyUrlFieldProps): React.JSX.Element {
+    const { t } = useTranslation();
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
 
@@ -45,12 +47,12 @@ export function ClickableCopyUrlField({
 
     const handleCopy = useCallback(async () => {
         if (!serverRunning) {
-            showMessage("サーバーが起動していません");
+            showMessage(t("toast.serverNotRunning"));
             return;
         }
         const url = `http://localhost:${port}`;
         const ok = await copyTextToClipboard(url);
-        showMessage(ok ? "URLをコピーしました" : "コピーに失敗しました");
+        showMessage(ok ? t("toast.urlCopied") : t("toast.failedToCopyUrl"));
     }, [serverRunning, port, copyTextToClipboard, showMessage]);
 
     return (
@@ -60,7 +62,7 @@ export function ClickableCopyUrlField({
                 value={
                     serverRunning
                         ? `http://localhost:${port}`
-                        : "サーバーが起動していません"
+                        : t("toast.serverNotRunning")
                 }
                 variant="outlined"
                 size="small"
@@ -68,11 +70,11 @@ export function ClickableCopyUrlField({
                     readOnly: true,
                     endAdornment: (
                         <InputAdornment position="end">
-                            <Tooltip title="コピー">
+                            <Tooltip title={t("tooltip.copy")}>
                                 <span>
                                     <IconButton
                                         size="small"
-                                        aria-label="URLをコピー"
+                                        aria-label="copy url"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             void handleCopy();
@@ -87,7 +89,7 @@ export function ClickableCopyUrlField({
                     ),
                 }}
                 inputProps={{
-                    title: "クリックでコピー",
+                    title: t("text.clickToCopy"),
                     style: { cursor: "pointer" },
                 }}
                 onClick={() => void handleCopy()}

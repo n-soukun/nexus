@@ -17,6 +17,7 @@ import { LogoView } from "@renderer/components/LogoView";
 import { useServerStatus } from "@renderer/hooks/useServerStatus";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Controller,
     SelectElement,
@@ -40,22 +41,25 @@ const LogoPicker: React.FC<LogoPickerProps> = ({
     onClickChange,
     onClickReset,
 }) => {
+    const { t } = useTranslation();
     return (
         <Stack direction="row" alignItems="center" spacing={2}>
             {logo ? (
                 <>
                     <LogoView src={logo} />
-                    <Tooltip title="画像をアップロードして変更">
+                    <Tooltip
+                        title={t("customize.tooltip.uploadAndChangeImage")}
+                    >
                         <Button
                             variant="text"
                             component="label"
                             onClick={onClickChange}
                             startIcon={<Edit />}
                         >
-                            変更
+                            {t("button.change")}
                         </Button>
                     </Tooltip>
-                    <Tooltip title="テーマのデフォルトに戻す">
+                    <Tooltip title={t("customize.tooltip.resetToThemeDefault")}>
                         <Button
                             variant="text"
                             color="error"
@@ -63,7 +67,7 @@ const LogoPicker: React.FC<LogoPickerProps> = ({
                             onClick={onClickReset}
                             startIcon={<Close />}
                         >
-                            リセット
+                            {t("button.reset")}
                         </Button>
                     </Tooltip>
                 </>
@@ -74,7 +78,7 @@ const LogoPicker: React.FC<LogoPickerProps> = ({
                     onClick={onClickChange}
                     startIcon={<Upload />}
                 >
-                    画像を選択
+                    {t("button.selectImage")}
                 </Button>
             )}
         </Stack>
@@ -83,6 +87,7 @@ const LogoPicker: React.FC<LogoPickerProps> = ({
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function Customize() {
+    const { t } = useTranslation();
     const { serverStatus } = useServerStatus();
 
     const [saving, setSaving] = useState(false);
@@ -141,7 +146,7 @@ function Customize() {
                     color="#888"
                     sx={{ textAlign: "center", pt: 2 }}
                 >
-                    ※ 変更は保存ボタンを押すと反映されます
+                    {t("customize.hint.saveToApply")}
                 </Typography>
             </Box>
             <Divider />
@@ -158,7 +163,7 @@ function Customize() {
                         component="div"
                         sx={{ flexGrow: 1 }}
                     >
-                        カスタマイズ
+                        {t("screenTitle.customize")}
                     </Typography>
                     <Stack direction="row" spacing={2}>
                         <Button
@@ -167,7 +172,7 @@ function Customize() {
                             type="button"
                             onClick={handleReset}
                         >
-                            リセット
+                            {t("button.reset")}
                         </Button>
                         <Button
                             type="submit"
@@ -175,7 +180,7 @@ function Customize() {
                             startIcon={<Save />}
                             loading={saving}
                         >
-                            保存
+                            {t("button.save")}
                         </Button>
                     </Stack>
                 </Stack>
@@ -186,14 +191,14 @@ function Customize() {
                                 slotProps={{ root: { sx: { py: 1 } } }}
                                 title={
                                     <Typography variant="h6" component="div">
-                                        ブルーチーム
+                                        {t("customize.section.blueTeam")}
                                     </Typography>
                                 }
                             />
                             <Divider />
                             <CardContent>
                                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                    成績
+                                    {t("customize.section.results")}
                                 </Typography>
                                 <Controller
                                     name="blueWins"
@@ -220,7 +225,7 @@ function Customize() {
                                     variant="subtitle2"
                                     sx={{ mt: 2, mb: 1 }}
                                 >
-                                    チーム情報
+                                    {t("customize.section.teamInfo")}
                                 </Typography>
                                 <Grid container spacing={2}>
                                     <Grid size={6}>
@@ -228,7 +233,7 @@ function Customize() {
                                             variant="standard"
                                             id="blue-name"
                                             name="blueName"
-                                            label="名前"
+                                            label={t("customize.label.name")}
                                             control={control}
                                             required
                                             sx={{ width: "100%" }}
@@ -239,7 +244,9 @@ function Customize() {
                                             variant="standard"
                                             id="blue-subtitle"
                                             name="blueSubtitle"
-                                            label="サブタイトル"
+                                            label={t(
+                                                "customize.label.subtitle",
+                                            )}
                                             control={control}
                                             sx={{ width: "100%" }}
                                         />
@@ -256,7 +263,7 @@ function Customize() {
                                     variant="subtitle2"
                                     sx={{ mt: 2, mb: 1 }}
                                 >
-                                    チームロゴ
+                                    {t("customize.section.teamLogo")}
                                 </Typography>
 
                                 <LogoPicker
@@ -277,14 +284,14 @@ function Customize() {
                                 slotProps={{ root: { sx: { py: 1 } } }}
                                 title={
                                     <Typography variant="h6" component="div">
-                                        レッドチーム
+                                        {t("customize.section.redTeam")}
                                     </Typography>
                                 }
                             />
                             <Divider />
                             <CardContent>
                                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                                    成績
+                                    {t("customize.section.results")}
                                 </Typography>
                                 <Controller
                                     name="redWins"
@@ -310,7 +317,7 @@ function Customize() {
                                     variant="subtitle2"
                                     sx={{ mt: 2, mb: 1 }}
                                 >
-                                    チーム情報
+                                    {t("customize.section.teamInfo")}
                                 </Typography>
                                 <Grid container spacing={2}>
                                     <Grid size={6}>
@@ -318,7 +325,7 @@ function Customize() {
                                             variant="standard"
                                             id="red-name"
                                             name="redName"
-                                            label="名前"
+                                            label={t("customize.label.name")}
                                             control={control}
                                             required
                                             sx={{ width: "100%" }}
@@ -329,7 +336,9 @@ function Customize() {
                                             variant="standard"
                                             id="red-subtitle"
                                             name="redSubtitle"
-                                            label="サブタイトル"
+                                            label={t(
+                                                "customize.label.subtitle",
+                                            )}
                                             control={control}
                                             sx={{ width: "100%" }}
                                         />
@@ -346,7 +355,7 @@ function Customize() {
                                     variant="subtitle2"
                                     sx={{ mt: 2, mb: 1 }}
                                 >
-                                    チームロゴ
+                                    {t("customize.section.teamLogo")}
                                 </Typography>
                                 <LogoPicker
                                     logo={redLogo}
@@ -363,7 +372,7 @@ function Customize() {
                             slotProps={{ root: { sx: { py: 1 } } }}
                             title={
                                 <Typography variant="h6" component="div">
-                                    全般
+                                    {t("customize.section.general")}
                                 </Typography>
                             }
                         />
@@ -373,12 +382,12 @@ function Customize() {
                                 variant="subtitle2"
                                 sx={{ mt: 2, mb: 1 }}
                             >
-                                トーナメント
+                                {t("customize.section.tournament")}
                             </Typography>
                             <FormControl fullWidth sx={{ maxWidth: 240 }}>
                                 <SelectElement
                                     variant="standard"
-                                    label="ルール"
+                                    label={t("customize.label.rule")}
                                     id="tournament-rule"
                                     name="tournamentRule"
                                     control={control}
@@ -392,7 +401,7 @@ function Customize() {
                                 variant="subtitle2"
                                 sx={{ mt: 2, mb: 1 }}
                             >
-                                ブランドロゴ
+                                {t("customize.section.brandLogo")}
                             </Typography>
                             <TextFieldElement
                                 id="tournament-icon"
