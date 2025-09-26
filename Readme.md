@@ -16,6 +16,7 @@ nuXus currently supports only Japanese.
 | バージョン | インストーラー                                                                                                        | ZIP ファイル                                                                                              |
 | ---------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | Latest     | [windows-x64-nexus-setup.exe](https://github.com/n-soukun/nexus/releases/latest/download/windows-x64-nexus-setup.exe) | [windows-x64-nexus.zip](https://github.com/n-soukun/nexus/releases/latest/download/windows-x64-nexus.zip) |
+| v0.0.2     | [windows-x64-nexus-setup.exe](https://github.com/n-soukun/nexus/releases/download/v0.0.2/windows-x64-nexus-setup.exe) | [windows-x64-nexus.zip](https://github.com/n-soukun/nexus/releases/download/v0.0.2/windows-x64-nexus.zip) |
 | v0.0.1     | [windows-x64-nexus-setup.exe](https://github.com/n-soukun/nexus/releases/download/v0.0.1/windows-x64-nexus-setup.exe) | [windows-x64-nexus.zip](https://github.com/n-soukun/nexus/releases/download/v0.0.1/windows-x64-nexus.zip) |
 
 ## テーマについて
