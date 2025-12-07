@@ -754,9 +754,7 @@ export class Team {
         // キル数
         const newKills = events
             .filterByName(EventNames.ChampionKill)
-            .filter((e) =>
-                this.players.some((p) => p.riotIdGameName === e.KillerName),
-            ).length;
+            .filter((e) => this.isPlayerName(e.KillerName)).length;
         if (this.kills !== newKills) {
             this.kills = newKills;
             updated = true;
@@ -765,9 +763,7 @@ export class Team {
         // タワー破壊数
         const newKillTurrets = events
             .filterByName(EventNames.TurretKilled)
-            .filter((e) =>
-                this.players.some((p) => p.riotIdGameName === e.KillerName),
-            ).length;
+            .filter((e) => this.isPlayerName(e.KillerName)).length;
         if (this.killTurrets !== newKillTurrets) {
             this.killTurrets = newKillTurrets;
             updated = true;
@@ -776,9 +772,7 @@ export class Team {
         // ドラゴンキル数と種類
         const newDragons = events
             .filterByName(EventNames.DragonKill)
-            .filter((e) =>
-                this.players.some((p) => p.riotIdGameName === e.KillerName),
-            )
+            .filter((e) => this.isPlayerName(e.KillerName))
             .map((e) => e.DragonType);
         if (this.dragons.length !== newDragons.length) {
             this.dragons = newDragons;
@@ -788,9 +782,7 @@ export class Team {
         // アタカンキル数
         const newKillAtakhans = events
             .filterByName(EventNames.AtakhanKill)
-            .filter((e) =>
-                this.players.some((p) => p.riotIdGameName === e.KillerName),
-            ).length;
+            .filter((e) => this.isPlayerName(e.KillerName)).length;
         if (this.killAtakhans !== newKillAtakhans) {
             this.killAtakhans = newKillAtakhans;
             updated = true;
@@ -799,9 +791,7 @@ export class Team {
         // ヴォイドグラブキル数
         const newKillHordes = events
             .filterByName(EventNames.HordeKill)
-            .filter((e) =>
-                this.players.some((p) => p.riotIdGameName === e.KillerName),
-            ).length;
+            .filter((e) => this.isPlayerName(e.KillerName)).length;
         if (this.killHordes !== newKillHordes) {
             this.killHordes = newKillHordes;
             updated = true;
@@ -810,9 +800,7 @@ export class Team {
         // ヘラルドキル数
         const newKillHeralds = events
             .filterByName(EventNames.HeraldKill)
-            .filter((e) =>
-                this.players.some((p) => p.riotIdGameName === e.KillerName),
-            ).length;
+            .filter((e) => this.isPlayerName(e.KillerName)).length;
         if (this.killHeralds !== newKillHeralds) {
             this.killHeralds = newKillHeralds;
             updated = true;
@@ -821,9 +809,7 @@ export class Team {
         // バロンキル数
         const newKillBarons = events
             .filterByName(EventNames.BaronKill)
-            .filter((e) =>
-                this.players.some((p) => p.riotIdGameName === e.KillerName),
-            ).length;
+            .filter((e) => this.isPlayerName(e.KillerName)).length;
         if (this.killBarons !== newKillBarons) {
             this.killBarons = newKillBarons;
             updated = true;
@@ -845,12 +831,7 @@ export class Team {
             // ファーストタワー確認
             if (this.featsProgress.firstBricks === false) {
                 const event = events.filterByName(EventNames.FirstBrick)[0];
-                if (
-                    event &&
-                    this.players.some(
-                        (p) => p.riotIdGameName === event.KillerName,
-                    )
-                ) {
+                if (event && this.isPlayerName(event.KillerName)) {
                     this.featsProgress.firstBricks = true;
                     updated = true;
                 }
@@ -880,6 +861,12 @@ export class Team {
             return true;
         }
         return false;
+    }
+
+    private isPlayerName(name: string) {
+        return this.players.some(
+            (p) => p.riotIdGameName === name || p.summonerName === name,
+        );
     }
 
     private emitFeatsAchieved() {

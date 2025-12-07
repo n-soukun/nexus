@@ -4,6 +4,8 @@ import {
     createRouter,
 } from "@tanstack/react-router";
 
+import "./i18n";
+
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";

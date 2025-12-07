@@ -18,12 +18,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import themesScreenshot from "../assets/themes-screenshot.png";
 import customizeScreenshot from "../assets/customize-screenshot.png";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/home")({
     component: HomeComponent,
 });
 
 function HomeComponent(): React.JSX.Element {
+    const { t } = useTranslation();
     const { serverStatus } = useServerStatus();
     const navigate = useNavigate({ from: "/home" });
 
@@ -70,7 +72,7 @@ function HomeComponent(): React.JSX.Element {
             </Box>
             <Stack direction="column" spacing={2} sx={{ p: 2 }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>
-                    neXusへようこそ
+                    {t("screenTitle.home")}
                 </Typography>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12, md: 6, lg: 4 }}>
@@ -79,12 +81,12 @@ function HomeComponent(): React.JSX.Element {
                                 title={
                                     <Stack alignItems="center" direction="row">
                                         <Palette sx={{ mr: 1 }} />
-                                        テーマを選択
+                                        {t("home.selectTheme")}
                                     </Stack>
                                 }
                                 action={
                                     <Button onClick={handleClickThemes}>
-                                        テーマへ移動
+                                        {t("home.goToThemes")}
                                     </Button>
                                 }
                             />
@@ -99,7 +101,7 @@ function HomeComponent(): React.JSX.Element {
                             />
                             <CardContent>
                                 <Typography variant="body1">
-                                    テーマを追加・変更することで、簡単にオーバーレイの見た目を変更できます。
+                                    {t("home.selectThemeDescription")}
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -110,12 +112,12 @@ function HomeComponent(): React.JSX.Element {
                                 title={
                                     <Stack alignItems="center" direction="row">
                                         <Tune sx={{ mr: 1 }} />
-                                        カスタマイズ
+                                        {t("screenTitle.customize")}
                                     </Stack>
                                 }
                                 action={
                                     <Button onClick={handleClickCustomize}>
-                                        カスタマイズへ移動
+                                        {t("home.goToCustomize")}
                                     </Button>
                                 }
                             />
@@ -130,7 +132,7 @@ function HomeComponent(): React.JSX.Element {
                             />
                             <CardContent>
                                 <Typography variant="body1">
-                                    チームの名前やロゴを設定したり、ブランドロゴや試合ルールを設定できます。
+                                    {t("home.customizeDescription")}
                                 </Typography>
                             </CardContent>
                         </Card>
@@ -147,12 +149,12 @@ function HomeComponent(): React.JSX.Element {
                                 title={
                                     <Stack alignItems="center" direction="row">
                                         <LiveTv sx={{ mr: 1 }} />
-                                        オーバーレイ設定
+                                        {t("home.overlaySettings")}
                                     </Stack>
                                 }
                                 action={
                                     <Button onClick={handleClickSettings}>
-                                        設定へ移動
+                                        {t("home.goToSettings")}
                                     </Button>
                                 }
                             />
@@ -165,7 +167,9 @@ function HomeComponent(): React.JSX.Element {
                                                 variant="body1"
                                                 sx={{ mb: 1 }}
                                             >
-                                                OBSなどの配信ソフトをお使いの場合は、このURLをブラウザソースに設定してください。
+                                                {t(
+                                                    "home.browserSourceInstruction",
+                                                )}
                                             </Typography>
                                             <ClickableCopyUrlField
                                                 port={serverStatus.port}
@@ -178,8 +182,12 @@ function HomeComponent(): React.JSX.Element {
                                             variant="body1"
                                             color="error"
                                         >
-                                            HTTPサーバーが起動していません。設定画面で
-                                            ポート番号を指定して、サーバーを起動してください。
+                                            {t(
+                                                "home.serverNotRunningInstruction1",
+                                            )}
+                                            {t(
+                                                "home.serverNotRunningInstruction2",
+                                            )}
                                         </Typography>
                                     )}
                                 </Box>

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
-import { HUDCustomize } from "../types";
+import { HUDCustomize, AppearanceConfig } from "../types";
 import { IPCEvents, IPCEventsHandler } from "../types";
 
 // Custom APIs for renderer
@@ -31,6 +31,10 @@ const api = {
     cancelVersionUp: () => ipcRenderer.invoke("cancel-version-up"),
     deleteThemeById: (themeId: string) =>
         ipcRenderer.invoke("delete-theme-by-id", themeId),
+
+    getAppearanceConfig: () => ipcRenderer.invoke("get-appearance-config"),
+    setAppearanceConfig: (config: AppearanceConfig) =>
+        ipcRenderer.invoke("set-appearance-config", config),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

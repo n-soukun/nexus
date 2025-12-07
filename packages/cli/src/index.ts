@@ -86,7 +86,9 @@ function parseStructureName(name: string): StructureData | null {
 
 function fmtName(name: string) {
     if (!game) return name;
-    const player = game.players.find((p) => p.riotIdGameName === name);
+    const player = game.players.find(
+        (p) => p.summonerName === name || p.riotIdGameName === name,
+    );
     if (player) {
         if (player.team.name === "ORDER") {
             return chalk.blueBright(name);
@@ -224,6 +226,7 @@ function EventToMessage(event: Event) {
             break;
         default:
             message += "<不明なイベント>";
+            message += JSON.stringify(event);
             break;
     }
     return message;
@@ -232,12 +235,10 @@ function EventToMessage(event: Event) {
 function createStateMessage(order: Team, chaos: Team) {
     if (!game) return;
     const blueGold = order.golds;
+    const blueKills = order.kills;
     const redGold = chaos.golds;
-    return `${chalk.blueBright(
-        "ブルーチーム",
-    )} ${blueGold.toLocaleString()}G - ${redGold.toLocaleString()}G ${chalk.redBright(
-        "レッドチーム",
-    )}`;
+    const redKills = chaos.kills;
+    return `${chalk.blueBright("ブルーチーム")} ${blueGold.toLocaleString()}G ${blueKills}K  -  ${redKills}K ${redGold.toLocaleString()}G ${chalk.redBright("レッドチーム")}`;
 }
 
 async function writeEventLog(message: string) {

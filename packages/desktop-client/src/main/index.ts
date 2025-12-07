@@ -12,7 +12,12 @@ import path, { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { base64 } from "base64-img";
 
-import type { HTTPServerStatus, HUDCustomize, AddThemeResult } from "../types";
+import type {
+    HTTPServerStatus,
+    HUDCustomize,
+    AddThemeResult,
+    AppearanceConfig,
+} from "../types";
 import { IPCEvents, type IPCEventsPayload } from "../types";
 import icon from "../../resources/icon.png?asset";
 import {
@@ -38,6 +43,8 @@ import {
     setHUDCustomize,
     setThemeConfig,
     setWindowState,
+    getAppearanceConfig,
+    setAppearanceConfig,
 } from "./store";
 import { adjustWindowStateToDisplays, getResourcePath } from "./utils";
 import {
@@ -68,6 +75,7 @@ export const gameObserver = new GameObserver();
 
 function createWindow(): void {
     const beforeWindowState = adjustWindowStateToDisplays(getWindowState());
+    const appearanceConfig = getAppearanceConfig();
 
     // Create the browser window.1
     const mainWindow = new BrowserWindow({
@@ -86,8 +94,10 @@ function createWindow(): void {
         },
         titleBarStyle: "hidden",
         titleBarOverlay: {
-            color: "#121212",
-            symbolColor: "#fff",
+            color:
+                appearanceConfig.colorMode === "light" ? "#f5f5f5" : "#121212",
+            symbolColor:
+                appearanceConfig.colorMode === "light" ? "#000" : "#fff",
             height: 48,
         },
     });
@@ -345,6 +355,31 @@ app.whenReady().then(() => {
         }
 
         return deleteThemeById(themeId);
+    });
+
+    ipcMain.handle("get-appearance-config", async () => {
+        return getAppearanceConfig();
+    });
+
+    ipcMain.handle(
+        "set-appearance-config",
+        async (_event, config: AppearanceConfig) => {
+            setAppearanceConfig(config);
+            return true;
+        },
+    );
+
+    // Restart window handler (close and reopen window instead of restarting app)
+    ipcMain.on("restart-app", () => {
+        const windows = BrowserWindow.getAllWindows();
+        if (windows.length > 0) {
+            const currentWindow = windows[0];
+            currentWindow.close();
+            // Wait a bit before creating new window to ensure clean closure
+            setTimeout(() => {
+                createWindow();
+            }, 100);
+        }
     });
 
     createWindow();

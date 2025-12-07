@@ -12,6 +12,7 @@ import { useGameStats } from "@renderer/hooks/useGameStats";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
 import { GameStats } from "src/types";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/gamestats")({
     component: RouteComponent,
@@ -24,17 +25,17 @@ interface TeamDataCardProps extends CardProps {
 
 type TeamStatsuKeys = keyof GameStats["blueTeam"];
 
-const statLabels: Record<TeamStatsuKeys, string> = {
-    kills: "合計キル数",
-    golds: "合計ゴールド",
-    turrets: "合計タレット破壊数",
-    killHordes: "ヴォイドグラブキル数",
-    killHeralds: "ヘラルドキル数",
-    killBarons: "バロンキル数",
-    dragons: "ドラゴンキル数",
-    killAtakhans: "アタカンキル数",
-    featsProgress: "チーム実績進捗",
-    goldsRaw: "合計ゴールド(生)",
+const statKeyToI18nKey: Record<TeamStatsuKeys, string> = {
+    kills: "gamestats.kills",
+    golds: "gamestats.golds",
+    turrets: "gamestats.turrets",
+    killHordes: "gamestats.killHordes",
+    killHeralds: "gamestats.killHeralds",
+    killBarons: "gamestats.killBarons",
+    dragons: "gamestats.dragons",
+    killAtakhans: "gamestats.killAtakhans",
+    featsProgress: "gamestats.featsProgress",
+    goldsRaw: "gamestats.goldsRaw",
 };
 
 const omitKeys: TeamStatsuKeys[] = ["featsProgress", "goldsRaw"];
@@ -44,6 +45,7 @@ const TeamOvervieward: React.FC<TeamDataCardProps> = ({
     teamName,
     ...props
 }): React.JSX.Element => {
+    const { t } = useTranslation();
     return (
         <Card {...props}>
             <CardHeader title={teamName} />
@@ -57,7 +59,7 @@ const TeamOvervieward: React.FC<TeamDataCardProps> = ({
                                     variant="subtitle2"
                                     color="text.secondary"
                                 >
-                                    {statLabels[key]}
+                                    {t(statKeyToI18nKey[key])}
                                 </Typography>
                                 <Typography variant="h6">
                                     {key === "dragons"
@@ -75,12 +77,12 @@ const TeamOvervieward: React.FC<TeamDataCardProps> = ({
                     color="text.secondary"
                     sx={{ mb: 1 }}
                 >
-                    力の偉業
+                    {t("gamestats.powerFeats")}
                 </Typography>
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                         <Typography variant="subtitle2" color="text.secondary">
-                            ファーストブラッド
+                            {t("gamestats.firstBlood")}
                         </Typography>
                         <Typography variant="h6">
                             {team.featsProgress.firstBloods}/3
@@ -88,15 +90,17 @@ const TeamOvervieward: React.FC<TeamDataCardProps> = ({
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                         <Typography variant="subtitle2" color="text.secondary">
-                            最初にタワーを破壊
+                            {t("gamestats.firstBrick")}
                         </Typography>
                         <Typography variant="h6">
-                            {team.featsProgress.firstBricks ? "達成" : "未達成"}
+                            {team.featsProgress.firstBricks
+                                ? t("gamestats.achieved")
+                                : t("gamestats.notAchieved")}
                         </Typography>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                         <Typography variant="subtitle2" color="text.secondary">
-                            モンスター討伐
+                            {t("gamestats.monsterHunt")}
                         </Typography>
                         <Typography variant="h6">
                             {team.featsProgress.killMonsters}/3
@@ -111,10 +115,10 @@ const TeamOvervieward: React.FC<TeamDataCardProps> = ({
                     color="text.secondary"
                     sx={{ mb: 1 }}
                 >
-                    デバッグ情報
+                    {t("gamestats.debugInfo")}
                 </Typography>
                 <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                    {`ゴールドOCR結果: ${team.goldsRaw}`}
+                    {`${t("gamestats.goldOcrResult")}: ${team.goldsRaw}`}
                 </Typography>
             </CardContent>
         </Card>
@@ -123,6 +127,7 @@ const TeamOvervieward: React.FC<TeamDataCardProps> = ({
 
 function RouteComponent(): React.JSX.Element {
     const { gameStats } = useGameStats();
+    const { t } = useTranslation();
 
     if (!gameStats) {
         return (
@@ -132,7 +137,7 @@ function RouteComponent(): React.JSX.Element {
                     sx={{ m: "auto" }}
                     color="text.secondary"
                 >
-                    ゲームクライアントが起動していません
+                    {t("gamestats.clientNotRunning")}
                 </Typography>
             </Box>
         );
@@ -141,18 +146,18 @@ function RouteComponent(): React.JSX.Element {
     return (
         <Box sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
-                ゲーム情報
+                {t("screenTitle.gameInfo")}
             </Typography>
             <Grid container spacing={2}>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TeamOvervieward
-                        teamName="ブルーチーム"
+                        teamName={t("gamestats.blueTeam")}
                         team={gameStats.blueTeam}
                     />
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                     <TeamOvervieward
-                        teamName="レッドチーム"
+                        teamName={t("gamestats.redTeam")}
                         team={gameStats.redTeam}
                     />
                 </Grid>
