@@ -1,6 +1,6 @@
 {
     "name": "@nexus/desktop-client",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "The custom tournament HUD for LOL.",
     "main": "./out/main/index.js",
     "author": "n-soukun",
